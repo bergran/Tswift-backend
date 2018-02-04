@@ -1,0 +1,6 @@
+venv/
+
+project/settings_*
+
+db.sqlite3
+.idea
