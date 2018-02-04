@@ -42,6 +42,7 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'rest_framework',
+    'django_filters',
     'v1.apps.V1Config'
 ]
 
