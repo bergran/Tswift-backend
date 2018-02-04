@@ -4,9 +4,10 @@ from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.decorators import detail_route
+from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
 from v1.models.Board import Boards
@@ -15,7 +16,13 @@ from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
 
 
-class BoardView(ModelViewSet):
+class BoardView(
+    GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin
+):
     queryset = Boards.objects.all()
     permission_classes = [IsAuthenticated, BoardPermission]
     serializer_class = BoardSerializer
