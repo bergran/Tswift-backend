@@ -16,11 +16,13 @@ class Permissions(models.Model):
     users = models.ManyToManyField(
         django_models.User,
         through='UserBoardPermissions',
+        through_fields=('permission', 'user'),
         related_name='users_custom'
     )
     groups = models.ManyToManyField(
         django_models.Group,
         through='GroupBoardPermissions',
+        through_fields=('permission', 'group'),
         related_name='groups_custom'
     )
 
