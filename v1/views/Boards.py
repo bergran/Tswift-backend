@@ -11,6 +11,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
 from v1.models.Board import Boards
+from v1.models.UserBoardPermissions import UserBoardPermissions
+from v1.models.Permissions import Permissions
+from v1.models.GroupBoardPermissions import GroupBoardPermissions
 from v1.permissions.boards.permission import BoardPermission
 from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
@@ -30,9 +33,17 @@ class BoardView(
 
     def get_queryset(self):
         user = self.request.user
+        try:
+            read_permission = Permissions.objects.get(name='read')
+        except Permissions.DoesNotExist:
+            return Boards.objects.none()
+
+        user_permissions_board = UserBoardPermissions.objects.filter(user=user, permission=read_permission)
+        groups_permissions_board = GroupBoardPermissions.objects.filter(group__in=user.groups.all(), permission=read_permission)
         return Boards.objects.filter(
-            Q(owner=self.request.user) | Q(userboardpermissions__user=user) |
-            Q(groupboardpermissions__group__in=user.groups.all())
+            Q(owner=self.request.user) |
+            Q(userboardpermissions__in=user_permissions_board) |
+            Q(groupboardpermissions__in=groups_permissions_board)
         )
 
     def get_serializer_context(self):

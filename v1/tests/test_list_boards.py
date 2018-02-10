@@ -57,6 +57,11 @@ class BoardTestList(APITestCase):
             permission=self.read,
             board=self.board3
         )
+        self.relation_group_4 = GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.read,
+            board=self.board4
+        )
 
         # Add permissions to users
         self.relation_user_1 = UserBoardPermissions.objects.create(
@@ -98,24 +103,24 @@ class BoardTestList(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check response has 4 boards
-        self.assertEqual(len(response.data), 4)
+        self.assertEqual(response.data.get('count'), 4)
 
     def test_user2_can_see_b1_and_b2(self):
         # Create response
-        response = self.send_request_with_authenticate(self.user1)
+        response = self.send_request_with_authenticate(self.user2)
 
         # Check response status code == 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check response has 4 boards
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data.get('count'), 2)
 
     def test_user3_can_see_b3_and_b4(self):
         # Create response
-        response = self.send_request_with_authenticate(self.user1)
+        response = self.send_request_with_authenticate(self.user3)
 
         # Check response status code == 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check response has 4 boards
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data.get('count'), 2)

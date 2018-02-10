@@ -3,11 +3,12 @@
 from django.db import models
 from django.contrib.auth import models as django_models
 
+READ = 'RD'
+WRITE = 'WT'
+DELETE = 'DE'
+
 
 class Permissions(models.Model):
-    READ = 'RD'
-    WRITE = 'WT'
-    DELETE = 'DE'
     names = (
         (READ, 'Read'),
         (WRITE, 'Write'),
