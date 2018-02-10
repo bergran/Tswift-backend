@@ -179,7 +179,7 @@ class BoardTestRetrieve(APITestCase):
 
     def test_retrieve_user2_board1(self):
         # send request
-        response = self.send_request_with_authenticate(self.user1, self.board1.pk)
+        response = self.send_request_with_authenticate(self.user2, self.board1.pk)
 
         # Check response status code is equals == 200
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
