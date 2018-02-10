@@ -77,4 +77,6 @@ class BoardView(
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def perform_destroy(self, instance):
-        pass
+        instance.deleted = True
+        instance.save()
+

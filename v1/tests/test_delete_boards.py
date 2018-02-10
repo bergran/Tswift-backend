@@ -112,3 +112,67 @@ class BoardTestRetrieve(APITestCase):
 
         # Check response status code is equals == 401
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_user1_board1(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user1, self.board1.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check model not exist
+        try:
+            instance = Boards.objects.get(pk=self.board1.pk)
+        except Boards.DoesNotExist:
+            self.assertRaises(Boards.DoesNotExist)
+        self.assertTrue(instance.deleted)
+
+    def test_delete_user2_board2(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user2, self.board2.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check model not exist
+        try:
+            instance = Boards.objects.get(pk=self.board2.pk)
+        except Boards.DoesNotExist:
+            self.assertRaises(Boards.DoesNotExist)
+        self.assertTrue(instance.deleted)
+
+    def test_delete_user3_board3(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user3, self.board3.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check model not exist
+        try:
+            instance = Boards.objects.get(pk=self.board3.pk)
+        except Boards.DoesNotExist:
+            self.assertRaises(Boards.DoesNotExist)
+        self.assertTrue(instance.deleted)
+
+    def test_delete_user2_board1(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user1, self.board1.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check model not exist
+        try:
+            instance = Boards.objects.get(pk=self.board1.pk)
+        except Boards.DoesNotExist:
+            self.assertRaises(Boards.DoesNotExist)
+        self.assertFalse(instance.deleted)
