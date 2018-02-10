@@ -43,7 +43,12 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     'rest_framework',
     'django_filters',
-    'v1.apps.V1Config'
+    'v1.apps.V1Config',
+    'rest_auth',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
@@ -156,3 +161,24 @@ JWT_AUTH = {
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=1),
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+# REST Auth
+# http://django-rest-auth.readthedocs.io/en/latest/
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+JWT_AUTH = {
+    'JWT_ALLOW_REFRESH': True
+}
+LOGOUT_ON_PASSWORD_CHANGE = True
+OLD_PASSWORD_FIELD_ENABLED = True
+REST_USE_JWT = True
+
+SITE_ID = 1
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT = os.environ.get('EMAIL_PORT', '')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_SSL = True
