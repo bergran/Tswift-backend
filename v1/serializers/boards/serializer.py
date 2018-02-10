@@ -13,14 +13,16 @@ class BoardSerializer(serializers.ModelSerializer):
             'name',
             'deleted',
             'date_created',
-            'date_modified'
+            'date_modified',
+            'states'
         )
 
         read_only_fields = (
             'id',
             'deleted',
             'date_created',
-            'date_modified'
+            'date_modified',
+            'states'
         )
 
     def create(self, validated_data):
