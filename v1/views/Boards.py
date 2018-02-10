@@ -16,6 +16,7 @@ from v1.models.Permissions import Permissions
 from v1.models.GroupBoardPermissions import GroupBoardPermissions
 from v1.permissions.boards.permission import BoardPermission
 from v1.serializers.boards.serializer import BoardSerializer
+from v1.serializers.boards.serializer_list import BoardListSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
 
 
@@ -54,6 +55,8 @@ class BoardView(
     def get_serializer_class(self):
         if self.action == 'change_name':
             return ChangeNameSerializer
+        elif self.action == 'list':
+            return BoardListSerializer
         else:
             return BoardSerializer
 
