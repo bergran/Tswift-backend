@@ -37,6 +37,17 @@ class BoardPermission(BasePermission):
                 Q(user=user) &
                 Q(permission__name__in=['delete', 'read', 'write'])
             ).count() == 3
+        elif view.action == 'get_states':
+            user = request.user
+            is_owner = user.boards_set.filter(pk=obj.pk).exists()
+            has_group_perm = obj.groupboardpermissions_set.filter(
+                Q(group__in=user.groups.all()) &
+                Q(permission__name__in=['read'])
+            ).exists()
+            has_user_perm = obj.userboardpermissions_set.filter(
+                Q(user=user) &
+                Q(permission__name__in=['read'])
+            ).exists()
         else:
             return True
         return is_owner or has_group_perm or has_user_perm
