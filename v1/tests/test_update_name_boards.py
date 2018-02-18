@@ -81,9 +81,9 @@ class BoardTestRetrieve(APITestCase):
         )
 
     def get_uri(self, pk):
-        return '/api/v1/boards/{}/'.format(pk)
+        return '/api/v1/boards/{}/change_name/'.format(pk)
 
-    def send_request_with_authenticate(self, user, pk):
+    def send_request_with_authenticate(self, user, pk, name):
         # Auth
         self.client.force_login(user=user)
 
@@ -91,7 +91,7 @@ class BoardTestRetrieve(APITestCase):
         uri = self.get_uri(pk)
 
         # Send request
-        response = self.client.get(uri)
+        response = self.client.put(uri, {'name': name})
 
         # Log out
         self.client.logout()
@@ -99,87 +99,79 @@ class BoardTestRetrieve(APITestCase):
         # Return response
         return response
 
-    def send_request_without_authenticate(self, pk):
+    def send_request_without_authenticate(self, pk, name):
         # Get uri
         uri = self.get_uri(pk)
 
         # Send request and return response
-        return self.client.get(uri)
+        return self.client.put(uri, {'name': name})
 
-    def test_retrieve_without_auth(self):
-        # send request
-        response = self.send_request_without_authenticate(self.board1.pk)
+    def test_change_name_board1_user1(self):
+        # Param
+        name = 'new name'
+        board_pk = self.board1.pk
+        user = self.user1
 
-        # Check response status code is equals == 401
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        # Send request
+        response = self.send_request_with_authenticate(user, board_pk, name)
 
-    def test_retrieve_user1_board1(self):
-        # send request
-        response = self.send_request_with_authenticate(self.user1, self.board1.pk)
-
-        # Check response status code is equals == 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Check response status code is equeals == 200
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         payload = response.data
-        # Check serializer fields are on payload
+        # Check serializers fields are on payload
+
+        # Check payload name is equals to name
+        self.assertEqual(payload.get('name'), name)
+
+    def test_change_name_board2_user2(self):
+        # Param
+        name = 'new name'
+        board_pk = self.board2.pk
+        user = self.user2
+
+        # Send request
+        response = self.send_request_with_authenticate(user, board_pk, name)
+
+        # Check response status code is equeals == 200
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        payload = response.data
+        # Check serializers fields are on payload
+
+        # Check payload name is equals to name
+        self.assertEqual(payload.get('name'), name)
+
+    def test_change_name_board3_user3(self):
+        # Param
+        name = 'new name'
+        board_pk = self.board3.pk
+        user = self.user3
+
+        # Send request
+        response = self.send_request_with_authenticate(user, board_pk, name)
+
+        # Check response status code is equeals == 200
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        payload = response.data
+        # Check serializers fields are on payload
         self.assertIn('id', payload.keys())
         self.assertIn('name', payload.keys())
         self.assertIn('date_created', payload.keys())
         self.assertIn('date_modified', payload.keys())
-        self.assertIn('deleted', payload.keys())
-        self.assertIn('states', payload.keys())
 
-    def test_retrieve_user2_board2(self):
-        # send request
-        response = self.send_request_with_authenticate(self.user2, self.board2.pk)
+        # Check payload name is equals to name
+        self.assertEqual(payload.get('name'), name)
 
-        # Check response status code is equals == 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_change_name_board1_user2(self):
+        # Param
+        name = 'new name'
+        board_pk = self.board1.pk
+        user = self.user2
 
-        payload = response.data
-        # Check serializer fields are on payload
-        self.assertIn('id', payload.keys())
-        self.assertIn('name', payload.keys())
-        self.assertIn('date_created', payload.keys())
-        self.assertIn('date_modified', payload.keys())
-        self.assertIn('deleted', payload.keys())
-        self.assertIn('states', payload.keys())
+        # Send request
+        response = self.send_request_with_authenticate(user, board_pk, name)
 
-    def test_retrieve_user3_board3(self):
-        # send request
-        response = self.send_request_with_authenticate(self.user3, self.board3.pk)
-
-        # Check response status code is equals == 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        payload = response.data
-        # Check serializer fields are on payload
-        self.assertIn('id', payload.keys())
-        self.assertIn('name', payload.keys())
-        self.assertIn('date_created', payload.keys())
-        self.assertIn('date_modified', payload.keys())
-        self.assertIn('deleted', payload.keys())
-        self.assertIn('states', payload.keys())
-
-    def test_retrieve_user1_board2(self):
-        # send request
-        response = self.send_request_with_authenticate(self.user1, self.board2.pk)
-
-        # Check response status code is equals == 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        payload = response.data
-        # Check serializer fields are on payload
-        self.assertIn('id', payload.keys())
-        self.assertIn('name', payload.keys())
-        self.assertIn('date_created', payload.keys())
-        self.assertIn('date_modified', payload.keys())
-        self.assertIn('deleted', payload.keys())
-        self.assertIn('states', payload.keys())
-
-    def test_retrieve_user2_board1(self):
-        # send request
-        response = self.send_request_with_authenticate(self.user2, self.board1.pk)
-
-        # Check response status code is equals == 200
+        # Check response status code is equeals == 404
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

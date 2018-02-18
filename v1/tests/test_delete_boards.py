@@ -42,41 +42,78 @@ class BoardTestRetrieve(APITestCase):
         self.board4 = Boards.objects.create(name='board 4', owner=self.user3)
 
         # Add permissions to groups
-        self.relation_group_1 = GroupBoardPermissions.objects.create(
+        GroupBoardPermissions.objects.create(
             group=self.group1,
             permission=self.read,
             board=self.board1
         )
-        self.relation_group_2 = GroupBoardPermissions.objects.create(
+        GroupBoardPermissions.objects.create(
+            group=self.group1,
+            permission=self.delete,
+            board=self.board1
+        )
+        GroupBoardPermissions.objects.create(
             group=self.group2,
             permission=self.read,
             board=self.board2
         )
-        self.relation_group_3 = GroupBoardPermissions.objects.create(
+        GroupBoardPermissions.objects.create(
+            group=self.group2,
+            permission=self.delete,
+            board=self.board2
+        )
+
+        GroupBoardPermissions.objects.create(
             group=self.group3,
             permission=self.read,
             board=self.board3
         )
-        self.relation_group_4 = GroupBoardPermissions.objects.create(
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
+            board=self.board3
+        )
+
+        GroupBoardPermissions.objects.create(
             group=self.group3,
             permission=self.read,
             board=self.board4
         )
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
+            board=self.board4
+        )
 
         # Add permissions to users
-        self.relation_user_1 = UserBoardPermissions.objects.create(
+        UserBoardPermissions.objects.create(
             user=self.user1,
             permission=self.read,
-            board=self.board1
+            board=self.board4
         )
-        self.relation_user_2 = UserBoardPermissions.objects.create(
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.delete,
+            board=self.board4
+        )
+        UserBoardPermissions.objects.create(
             user=self.user1,
             permission=self.read,
             board=self.board2
         )
-        self.relation_user_3 = UserBoardPermissions.objects.create(
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.delete,
+            board=self.board2
+        )
+        UserBoardPermissions.objects.create(
             user=self.user2,
             permission=self.read,
+            board=self.board3
+        )
+        UserBoardPermissions.objects.create(
+            user=self.user2,
+            permission=self.delete,
             board=self.board3
         )
 
@@ -161,10 +198,19 @@ class BoardTestRetrieve(APITestCase):
             self.assertRaises(Boards.DoesNotExist)
         self.assertTrue(instance.deleted)
 
-    def test_delete_user2_board1(self):
+    def test_delete_user2_board1_no_permissions(self):
         # Send request
         response = self.send_request_with_authenticate(
-            self.user1, self.board1.pk
+            self.user2, self.board1.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_user2_board3_group_permissions(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user2, self.board3.pk
         )
 
         # Check response status code is equeals to 204
@@ -172,7 +218,23 @@ class BoardTestRetrieve(APITestCase):
 
         # Check model not exist
         try:
-            instance = Boards.objects.get(pk=self.board1.pk)
+            instance = Boards.objects.get(pk=self.board3.pk)
         except Boards.DoesNotExist:
             self.assertRaises(Boards.DoesNotExist)
-        self.assertFalse(instance.deleted)
+        self.assertTrue(instance.deleted)
+
+    def test_delete_user1_board4_user_permission(self):
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user1, self.board4.pk
+        )
+
+        # Check response status code is equeals to 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check model not exist
+        try:
+            instance = Boards.objects.get(pk=self.board4.pk)
+        except Boards.DoesNotExist:
+            self.assertRaises(Boards.DoesNotExist)
+        self.assertTrue(instance.deleted)

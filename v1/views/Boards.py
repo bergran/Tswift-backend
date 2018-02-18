@@ -11,9 +11,6 @@ from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
 from v1.models.Board import Boards
-from v1.models.UserBoardPermissions import UserBoardPermissions
-from v1.models.Permissions import Permissions
-from v1.models.GroupBoardPermissions import GroupBoardPermissions
 from v1.permissions.boards.permission import BoardPermission
 from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.serializer_list import BoardListSerializer
@@ -33,19 +30,16 @@ class BoardView(
     filter_class = BoardFilters
 
     def get_queryset(self):
-        user = self.request.user
-        try:
-            read_permission = Permissions.objects.get(name='read')
-        except Permissions.DoesNotExist:
-            return Boards.objects.none()
+        queryset = self.queryset
+        if self.action not in ['destroy', 'retrieve', 'change_name']:
+            user = self.request.user
 
-        user_permissions_board = UserBoardPermissions.objects.filter(user=user, permission=read_permission)
-        groups_permissions_board = GroupBoardPermissions.objects.filter(group__in=user.groups.all(), permission=read_permission)
-        return Boards.objects.filter(
-            Q(owner=self.request.user) |
-            Q(userboardpermissions__in=user_permissions_board) |
-            Q(groupboardpermissions__in=groups_permissions_board)
-        )
+            return queryset.filter(
+                Q(owner=user) |
+                Q(userboardpermissions__user=user, userboardpermissions__permission__name='read') |
+                Q(groupboardpermissions__group__in=user.groups.all(), groupboardpermissions__permission__name='read')
+            ).distinct()
+        return queryset
 
     def get_serializer_context(self):
         return {
@@ -62,10 +56,7 @@ class BoardView(
 
     @detail_route(methods=['put'], permission_classes=[IsAuthenticated, BoardPermission])
     def change_name(self, request, pk=None):
-        try:
-            instance = Boards.objects.get(pk=pk)
-        except Boards.DoesNotExist:
-            Response(status=status.HTTP_404_NOT_FOUND)
+        instance = self.get_object()
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
 
