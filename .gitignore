@@ -4,3 +4,7 @@ project/settings_*
 
 db.sqlite3
 .idea
+
+*.pyc
+
+/__pycache__/
