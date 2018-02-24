@@ -43,3 +43,7 @@ class StatesView(
             Q(board__groupboardpermissions__group__in=user.groups.all(), board__groupboardpermissions__permission__name='read')
         ).distinct()
         return queryset
+
+    def perform_destroy(self, instance):
+        instance.deleted = True
+        instance.save()
