@@ -9,7 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from v1.models.State import States
 from v1.serializers.tasks_states.serializer import StateSerializer
-from v1.permissions.boards.permission import BoardPermission
+from v1.permissions.states.permissions import StatesPermission
 
 
 class StatesView(
@@ -20,7 +20,7 @@ class StatesView(
     mixins.UpdateModelMixin
 ):
     queryset = States.objects.all()
-    permission_classes = [IsAuthenticated, BoardPermission]
+    permission_classes = [IsAuthenticated, StatesPermission]
 
     def get_serializer_context(self):
         return {

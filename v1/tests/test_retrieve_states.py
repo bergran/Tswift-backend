@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.dateparse import parse_date
+from django.utils.dateparse import parse_datetime
 from django.contrib.auth.models import User, Group
 
 from rest_framework import status
@@ -13,7 +13,7 @@ from v1.models.GroupBoardPermissions import GroupBoardPermissions
 from v1.models.State import States
 
 
-class BoardTestList(APITestCase):
+class StatesTestRetrieve(APITestCase):
     def setUp(self):
         # Create some users
         self.user1 = User.objects.create(username='Pepito')
@@ -142,11 +142,11 @@ class BoardTestList(APITestCase):
         # Check data
         self.assertEqual(payload.get('id'), state.pk)
         self.assertEqual(payload.get('name'), state.name)
-        self.assertEqual(parse_date(
+        self.assertEqual(parse_datetime(
             payload.get('date_created')),
             state.date_created
         )
-        self.assertEqual(parse_date(
+        self.assertEqual(parse_datetime(
             payload.get('date_modified')),
             state.date_modified
         )
