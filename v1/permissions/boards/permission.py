@@ -20,11 +20,11 @@ class BoardPermission(BasePermission):
         if obj.groupboardpermissions_set.filter(
             group__in=user.groups.all(),
             permission__name__in=permissions_name
-        ).count() == len(permissions_name):
+        ).count() == len(permissions_name) and view.action != 'update':
             return True
         if obj.userboardpermissions_set.filter(
             user=user,
             permission__name__in=permissions_name
-        ).count() == len(permissions_name):
+        ).count() == len(permissions_name) and view.action != 'update':
             return True
         return False
