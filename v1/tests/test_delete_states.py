@@ -57,9 +57,19 @@ class StatesTestRetrieve(APITestCase):
             permission=self.read,
             board=self.board1
         )
+        GroupBoardPermissions.objects.create(
+            group=self.group1,
+            permission=self.write,
+            board=self.board1
+        )
         self.relation_group_2 = GroupBoardPermissions.objects.create(
             group=self.group2,
             permission=self.read,
+            board=self.board2
+        )
+        GroupBoardPermissions.objects.create(
+            group=self.group2,
+            permission=self.delete,
             board=self.board2
         )
         self.relation_group_3 = GroupBoardPermissions.objects.create(
@@ -67,9 +77,19 @@ class StatesTestRetrieve(APITestCase):
             permission=self.read,
             board=self.board3
         )
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
+            board=self.board3
+        )
         self.relation_group_4 = GroupBoardPermissions.objects.create(
             group=self.group3,
             permission=self.read,
+            board=self.board4
+        )
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
             board=self.board4
         )
 
@@ -79,14 +99,29 @@ class StatesTestRetrieve(APITestCase):
             permission=self.read,
             board=self.board1
         )
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.write,
+            board=self.board1
+        )
         self.relation_user_2 = UserBoardPermissions.objects.create(
             user=self.user1,
             permission=self.read,
             board=self.board2
         )
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.delete,
+            board=self.board2
+        )
         self.relation_user_3 = UserBoardPermissions.objects.create(
             user=self.user2,
             permission=self.read,
+            board=self.board3
+        )
+        UserBoardPermissions.objects.create(
+            user=self.user2,
+            permission=self.delete,
             board=self.board3
         )
 
@@ -156,10 +191,10 @@ class StatesTestRetrieve(APITestCase):
 
         self.launch_test_successfully(user, state)
 
-    def test_destroy_status_board_3_user2(self):
+    def test_destroy_status_state_6_user2(self):
         # Params
         user = self.user2
-        state = self.state3
+        state = self.state6
 
         self.launch_test_successfully(user, state)
 
