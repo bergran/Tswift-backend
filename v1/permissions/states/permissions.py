@@ -10,19 +10,23 @@ class StatesPermission(BasePermission):
             permissions_name = ['read']
         elif view.action == 'destroy':
             permissions_name = ['delete', 'read']
-        elif view.action == 'change_name':
+        elif view.action in [
+            'change_name',
+            'update',
+            'partial_update',
+            'create'
+        ]:
             permissions_name = ['read', 'write']
-        else:
-            return True
+
         user = request.user
         if obj.board.owner == user:
             return True
-        if obj.board.groupboardpermissions_set.filter(
+        elif obj.board.groupboardpermissions_set.filter(
             group__in=user.groups.all(),
             permission__name__in=permissions_name
         ).count() == len(permissions_name) and view.action != 'update':
             return True
-        if obj.board.userboardpermissions_set.filter(
+        elif obj.board.userboardpermissions_set.filter(
             user=user,
             permission__name__in=permissions_name
         ).count() == len(permissions_name) and view.action != 'update':

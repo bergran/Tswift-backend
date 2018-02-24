@@ -10,10 +10,13 @@ class BoardPermission(BasePermission):
             permissions_name = ['read']
         elif view.action == 'destroy':
             permissions_name = ['delete', 'read']
-        elif view.action == 'change_name':
+        elif view.action in [
+            'change_name',
+            'update',
+            'partial_update',
+            'create'
+        ]:
             permissions_name = ['read', 'write']
-        else:
-            return True
         user = request.user
         if obj.owner == user:
             return True
