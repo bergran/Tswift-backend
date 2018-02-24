@@ -15,3 +15,4 @@ class States(models.Model):
     class Meta:
         db_table = 'States'
         unique_together = (('name', 'board'), )
+        ordering = ('date_created', )
