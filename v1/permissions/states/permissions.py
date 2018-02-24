@@ -15,13 +15,16 @@ class StatesPermission(BasePermission):
         else:
             return True
         user = request.user
-        is_owner = obj.board.owner == user
-        has_group_perm = obj.board.groupboardpermissions_set.filter(
+        if obj.board.owner == user:
+            return True
+        if obj.board.groupboardpermissions_set.filter(
             group__in=user.groups.all(),
             permission__name__in=permissions_name
-        ).count() == len(permissions_name)
-        has_user_perm = obj.board.userboardpermissions_set.filter(
+        ).count() == len(permissions_name):
+            return True
+        if obj.board.userboardpermissions_set.filter(
             user=user,
             permission__name__in=permissions_name
-        ).count() == len(permissions_name)
-        return is_owner or has_group_perm or has_user_perm
+        ).count() == len(permissions_name):
+            return True
+        return False
