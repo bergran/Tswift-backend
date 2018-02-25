@@ -3,11 +3,14 @@
 from django.db.models import Q
 
 from rest_framework import mixins
+from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-
+from v1.filters.tasks_filter import TasksFilter
 from v1.models.State import States
+from v1.models.Task import Tasks
 from v1.serializers.tasks_states.serializer import StateSerializer
 from v1.permissions.states.permissions import StatesPermission
 
@@ -17,8 +20,18 @@ class StatesView(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin
 ):
+    """
+        get_tasks:
+            Endpoint to list a task from state <id>. You can
+            paginate and filter. Query Params are:
+
+            page (Int): page number.
+            start_date(Iso_date): date where want to start lookup.
+            end_date(Iso_date): date where want to end lookup.
+            is_expired(Boolean): True to filter by expired or False to not.
+            title(Text): lookup contains text.
+    """
     queryset = States.objects.all()
     permission_classes = [IsAuthenticated, StatesPermission]
 
@@ -42,8 +55,25 @@ class StatesView(
             Q(board__userboardpermissions__user=user, board__userboardpermissions__permission__name='read') |
             Q(board__groupboardpermissions__group__in=user.groups.all(), board__groupboardpermissions__permission__name='read')
         ).distinct()
-        return queryset
 
     def perform_destroy(self, instance):
         instance.deleted = True
         instance.save()
+
+    def filter_queryset(self, queryset):
+        if self.action == 'get_tasks':
+            return TasksFilter
+        else:
+            return super(StatesView, self).filter_queryset()
+
+    @detail_route(methods=['get'])
+    def get_tasks(self, request, pk):
+        queryset = Tasks.objects.filter(state_id=pk)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

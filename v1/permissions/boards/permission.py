@@ -12,22 +12,23 @@ class BoardPermission(BasePermission):
             permissions_name = ['delete', 'read']
         elif view.action in [
             'change_name',
-            'update',
-            'partial_update',
             'create'
         ]:
             permissions_name = ['read', 'write']
+        else:
+            permissions_name = ['read', 'write', 'delete']
+
         user = request.user
         if obj.owner == user:
             return True
         if obj.groupboardpermissions_set.filter(
             group__in=user.groups.all(),
             permission__name__in=permissions_name
-        ).count() == len(permissions_name) and view.action != 'update':
+        ).count() == len(permissions_name):
             return True
         if obj.userboardpermissions_set.filter(
             user=user,
             permission__name__in=permissions_name
-        ).count() == len(permissions_name) and view.action != 'update':
+        ).count() == len(permissions_name):
             return True
         return False
