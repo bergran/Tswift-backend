@@ -18,3 +18,4 @@ class Tasks(models.Model):
 
     class Meta:
         db_table = 'Tasks'
+        ordering = ['-date_created']

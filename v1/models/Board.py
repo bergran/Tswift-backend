@@ -14,3 +14,4 @@ class Boards(models.Model):
     class Meta:
         db_table = 'Boards'
         unique_together = (('name', 'owner'), )
+        ordering = ('date_created',)
