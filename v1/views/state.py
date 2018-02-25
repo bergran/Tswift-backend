@@ -64,7 +64,7 @@ class StatesView(
         if self.action == 'get_tasks':
             return TasksFilter
         else:
-            return super(StatesView, self).filter_queryset()
+            return super(StatesView, self).filter_queryset(queryset)
 
     @detail_route(methods=['get'])
     def get_tasks(self, request, pk):
