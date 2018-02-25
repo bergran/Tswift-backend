@@ -10,11 +10,11 @@ from v1.models.Task import Tasks
 
 class TasksFilter(django_filters.FilterSet):
     start_date = django_filters.IsoDateTimeFilter(
-        name='date_modified',
+        name='date_created',
         lookup_expr='gte'
     )
     end_date = django_filters.IsoDateTimeFilter(
-        name='date_modified',
+        name='date_created',
         lookup_expr='lte'
     )
     is_expired = django_filters.BooleanFilter(

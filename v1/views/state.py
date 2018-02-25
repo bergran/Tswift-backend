@@ -12,6 +12,7 @@ from v1.filters.tasks_filter import TasksFilter
 from v1.models.State import States
 from v1.models.Task import Tasks
 from v1.serializers.tasks_states.serializer import StateSerializer
+from v1.serializers.tasks_states.get_tasks import GetTasksSerializer
 from v1.permissions.states.permissions import StatesPermission
 
 
@@ -42,7 +43,7 @@ class StatesView(
 
     def get_serializer_class(self):
         if self.action == 'get_tasks':
-            return StateSerializer
+            return GetTasksSerializer
         else:
             return StateSerializer
 
@@ -60,20 +61,21 @@ class StatesView(
         instance.deleted = True
         instance.save()
 
-    def filter_queryset(self, queryset):
-        if self.action == 'get_tasks':
-            return TasksFilter
-        else:
-            return super(StatesView, self).filter_queryset(queryset)
-
     @detail_route(methods=['get'])
     def get_tasks(self, request, pk):
-        queryset = Tasks.objects.filter(state_id=pk)
+        obj = self.get_object()
 
-        page = self.paginate_queryset(queryset)
+        self.filter_class = TasksFilter
+        queryset = Tasks.objects.filter(state=obj)
+
+        filter_queryset = self.filter_queryset(queryset)
+
+        page = self.paginate_queryset(filter_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+
+        self.filter_class = None
         return Response(serializer.data)

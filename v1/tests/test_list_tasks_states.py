@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from django.utils import timezone
 from django.contrib.auth.models import User, Group
 
 from rest_framework import status
@@ -10,9 +11,10 @@ from v1.models.Permissions import Permissions
 from v1.models.UserBoardPermissions import UserBoardPermissions
 from v1.models.GroupBoardPermissions import GroupBoardPermissions
 from v1.models.State import States
+from v1.models.Task import Tasks
 
 
-class BoardTestList(APITestCase):
+class StatesTestRetrieve(APITestCase):
     def setUp(self):
         # Create some users
         self.user1 = User.objects.create(username='Pepito')
@@ -56,9 +58,19 @@ class BoardTestList(APITestCase):
             permission=self.read,
             board=self.board1
         )
+        GroupBoardPermissions.objects.create(
+            group=self.group1,
+            permission=self.write,
+            board=self.board1
+        )
         self.relation_group_2 = GroupBoardPermissions.objects.create(
             group=self.group2,
             permission=self.read,
+            board=self.board2
+        )
+        GroupBoardPermissions.objects.create(
+            group=self.group2,
+            permission=self.delete,
             board=self.board2
         )
         self.relation_group_3 = GroupBoardPermissions.objects.create(
@@ -66,9 +78,19 @@ class BoardTestList(APITestCase):
             permission=self.read,
             board=self.board3
         )
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
+            board=self.board3
+        )
         self.relation_group_4 = GroupBoardPermissions.objects.create(
             group=self.group3,
             permission=self.read,
+            board=self.board4
+        )
+        GroupBoardPermissions.objects.create(
+            group=self.group3,
+            permission=self.delete,
             board=self.board4
         )
 
@@ -78,9 +100,19 @@ class BoardTestList(APITestCase):
             permission=self.read,
             board=self.board1
         )
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.write,
+            board=self.board1
+        )
         self.relation_user_2 = UserBoardPermissions.objects.create(
             user=self.user1,
             permission=self.read,
+            board=self.board2
+        )
+        UserBoardPermissions.objects.create(
+            user=self.user1,
+            permission=self.delete,
             board=self.board2
         )
         self.relation_user_3 = UserBoardPermissions.objects.create(
@@ -88,11 +120,60 @@ class BoardTestList(APITestCase):
             permission=self.read,
             board=self.board3
         )
+        UserBoardPermissions.objects.create(
+            user=self.user2,
+            permission=self.delete,
+            board=self.board3
+        )
+
+        self.task1 = Tasks.objects.create(
+            title='task 1',
+            description='Some description',
+            date_expired=timezone.now() + timezone.timedelta(days=1),
+            state=self.state1,
+            board=self.state1.board
+        )
+        self.task2 = Tasks.objects.create(
+            title='task 2',
+            description='Some description',
+            date_expired=timezone.now() + timezone.timedelta(hours=5),
+            state=self.state1,
+            board=self.state1.board
+        )
+        self.task3 = Tasks.objects.create(
+            title='task 3',
+            description='Some description',
+            date_expired=timezone.now() - timezone.timedelta(minutes=5),
+            state=self.state1,
+            board=self.state1.board
+        )
+
+        self.task4 = Tasks.objects.create(
+            title='task 4',
+            description='Some description',
+            date_expired=timezone.now(),
+            state=self.state2,
+            board=self.state2.board
+        )
+        self.task5 = Tasks.objects.create(
+            title='task 5',
+            description='Some description',
+            date_expired=timezone.now(),
+            state=self.state2,
+            board=self.state2.board
+        )
+        self.task6 = Tasks.objects.create(
+            title='task 6',
+            description='Some description',
+            date_expired=timezone.now(),
+            state=self.state2,
+            board=self.state2.board
+        )
 
     def get_uri(self, pk):
-        return '/api/v1/boards/{}/get_states/'.format(pk)
+        return '/api/v1/states/{}/get_tasks/'.format(pk)
 
-    def send_request_with_authenticate(self, user, pk):
+    def send_request_with_authenticate(self, user, pk, params):
         # Get uri
         uri = self.get_uri(pk)
 
@@ -100,93 +181,145 @@ class BoardTestList(APITestCase):
         self.client.force_login(user=user)
 
         # Send request
-        response = self.client.get(uri)
+        response = self.client.get(uri, params)
 
         # Logout
         self.client.logout()
 
         return response
 
-    def send_request_without_authenticate(self, pk):
+    def send_request_without_authenticate(self, pk, params):
         # Get uri
         uri = self.get_uri(pk)
 
         # Send request and return it
-        return self.client.get(uri)
+        return self.client.get(uri, params)
 
-    def test_anonimous_user_no_boards(self):
-        response = self.send_request_without_authenticate(self.board1.pk)
+    def test_anonimous_user_no_states(self):
+        params = {}
+        response = self.send_request_without_authenticate(self.board1.pk, params)
 
         # Check status code is == 401
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_list_status_board_1_user1(self):
-        # Params
-        user = self.user1
-        board = self.board1
-
+    def launch_test_successfully(self, user, state, tasks_length, params):
         # Send request
-        response = self.send_request_with_authenticate(user, board.pk)
+        response = self.send_request_with_authenticate(
+            user,
+            state.pk,
+            params
+        )
 
         # Check response status code is equals to 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        payload = response.data
-        # Check serializers fields are on payload
-        self.assertIn('id', payload)
-        self.assertIn('name', payload)
-        self.assertIn('states', payload)
+        payload = response.data.get('results')
+        # Check length is equals to length_param
+        self.assertEqual(len(payload), tasks_length)
 
-        # Check board has 2 states
-        self.assertEqual(len(payload.get('states')), 2)
-
-    def test_list_status_board_2_user1(self):
+    def test_get_tasks_status_state_1_user1(self):
         # Params
         user = self.user1
-        board = self.board2
+        state = self.state1
+        tasks = 3
+        params = {}
 
-        # Send request
-        response = self.send_request_with_authenticate(user, board.pk)
+        self.launch_test_successfully(user, state, tasks, params)
 
-        # Check response status code is equals to 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_tasks_status_state_2_user1(self):
+        # Params
+        user = self.user1
+        state = self.state2
+        tasks = 3
+        params = {}
 
-        payload = response.data
-        # Check serializers fields are on payload
-        self.assertIn('id', payload)
-        self.assertIn('name', payload)
-        self.assertIn('states', payload)
+        self.launch_test_successfully(user, state, tasks, params)
 
-        # Check board has 2 states
-        self.assertEqual(len(payload.get('states')), 3)
-
-    def test_list_status_board_3_user2(self):
+    def test_get_tasks_status_state_3_user2(self):
         # Params
         user = self.user2
-        board = self.board3
+        state = self.state3
+        tasks = 0
+        params = {}
 
-        # Send request
-        response = self.send_request_with_authenticate(user, board.pk)
+        self.launch_test_successfully(user, state, tasks, params)
 
-        # Check response status code is equals to 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_tasks_status_state_6_user2(self):
+        # Params
+        user = self.user2
+        state = self.state6
+        tasks = 0
+        params = {}
 
-        payload = response.data
-        # Check serializers fields are on payload
-        self.assertIn('id', payload)
-        self.assertIn('name', payload)
-        self.assertIn('states', payload)
+        self.launch_test_successfully(user, state, tasks, params)
 
-        # Check board has 2 states
-        self.assertEqual(len(payload.get('states')), 1)
-
-    def test_list_status_board_1_user2_forbidden(self):
+    def test_get_tasks_status_board_1_user2_forbidden(self):
         # Params
         user = self.user2
         board = self.board1
+        params = {
+            'title': self.task1.title
+        }
 
         # Send request
-        response = self.send_request_with_authenticate(user, board.pk)
+        response = self.send_request_with_authenticate(user, board.pk, params)
 
         # Check response status code is equals to 403
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_tasks_filtering_by_title(self):
+        # Params
+        user = self.user1
+        state = self.state1
+        tasks = 1
+        params = {
+            'title': self.task1.title
+        }
+
+        self.launch_test_successfully(user, state, tasks, params)
+
+    def test_get_tasks_filtering_by_date_create_range(self):
+        # Params
+        user = self.user1
+        state = self.state1
+        tasks = 3
+        params = {
+            'start_date': self.task1.date_created,
+            'end_date': self.task3.date_created
+        }
+
+        self.launch_test_successfully(user, state, tasks, params)
+
+    def test_get_tasks_filtering_by_is_expired_true(self):
+        # Params
+        user = self.user1
+        state = self.state1
+        tasks = 1
+        params = {
+            'is_expired': True
+        }
+
+        self.launch_test_successfully(user, state, tasks, params)
+
+    def test_get_tasks_filtering_by_is_expired_false(self):
+        # Params
+        user = self.user1
+        state = self.state1
+        tasks = 2
+        params = {
+            'is_expired': False
+        }
+
+        self.launch_test_successfully(user, state, tasks, params)
+
+    def test_get_tasks_filtering_by_title_contains(self):
+        # Params
+        user = self.user1
+        state = self.state1
+        tasks = 3
+        params = {
+            'title': 'task'
+        }
+
+        self.launch_test_successfully(user, state, tasks, params)
+
