@@ -3,6 +3,7 @@
 from django.contrib.auth import models as django_models
 from django.db import models
 
+
 class BoardManager(models.Manager):
     def get_boards_access(self, user):
         return self.filter(
@@ -10,6 +11,7 @@ class BoardManager(models.Manager):
             Q(userboardpermissions__user=user, userboardpermissions__permission__name='read') |
             Q(groupboardpermissions__group__in=user.groups.all(), groupboardpermissions__permission__name='read')
         ).distinct()
+
 
 class Boards(models.Model):
     name = models.CharField(max_length=20)
