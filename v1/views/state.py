@@ -61,7 +61,7 @@ class StatesView(
         instance.deleted = True
         instance.save()
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['get'], url_path='tasks')
     def get_tasks(self, request, pk):
         obj = self.get_object()
 

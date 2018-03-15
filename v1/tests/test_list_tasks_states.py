@@ -171,7 +171,7 @@ class StatesTestRetrieve(APITestCase):
         )
 
     def get_uri(self, pk):
-        return '/api/v1/states/{}/get_tasks/'.format(pk)
+        return '/api/v1/states/{}/tasks/'.format(pk)
 
     def send_request_with_authenticate(self, user, pk, params):
         # Get uri
@@ -322,4 +322,3 @@ class StatesTestRetrieve(APITestCase):
         }
 
         self.launch_test_successfully(user, state, tasks, params)
-
