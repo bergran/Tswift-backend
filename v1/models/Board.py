@@ -7,10 +7,15 @@ from django.db import models
 class BoardManager(models.Manager):
     def get_boards_access(self, user):
         return self.filter(
-            Q(owner=user) |
-            Q(userboardpermissions__user=user, userboardpermissions__permission__name='read') |
-            Q(groupboardpermissions__group__in=user.groups.all(), groupboardpermissions__permission__name='read')
+            models.Q(owner=user) |
+            models.Q(userboardpermissions__user=user, userboardpermissions__permission__name='read') |
+            models.Q(groupboardpermissions__group__in=user.groups.all(), groupboardpermissions__permission__name='read')
         ).distinct()
+
+    def has_boards_access(self, user, board_instance):
+        return self.get_boards_access(user).filter(
+            pk=board_instance.pk
+        ).exists()
 
 
 class Boards(models.Model):
