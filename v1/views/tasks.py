@@ -18,7 +18,7 @@ class TasksViewset(ModelViewSet):
 
         # To show tasks that are owner, has access by group or user
         return queryset.filter(
-            board__in=Boards.permissions.get_boards_access(user)
+            board__in=Boards.permissions.get_boards_access(user, ['read'])
         )
 
     def get_serializer_class(self):

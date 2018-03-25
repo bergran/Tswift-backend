@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.db.models import Q
 
 from rest_framework.permissions import BasePermission
+
+from v1.models.Board import Boards
 
 
 class BoardPermission(BasePermission):
@@ -19,16 +20,4 @@ class BoardPermission(BasePermission):
             permissions_name = ['read', 'write', 'delete']
 
         user = request.user
-        if obj.owner == user:
-            return True
-        if obj.groupboardpermissions_set.filter(
-            group__in=user.groups.all(),
-            permission__name__in=permissions_name
-        ).count() == len(permissions_name):
-            return True
-        if obj.userboardpermissions_set.filter(
-            user=user,
-            permission__name__in=permissions_name
-        ).count() == len(permissions_name):
-            return True
-        return False
+        return Boards.permissions.has_boards_access(user, obj, permissions_name)
