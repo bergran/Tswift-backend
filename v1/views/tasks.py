@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import mixins
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 
 from v1.models.Task import Tasks
@@ -9,7 +10,13 @@ from v1.serializers.tasks.serializer import TasksSerializer
 from v1.permissions.tasks.permissions import TasksPermissions
 
 
-class TasksViewset(ModelViewSet):
+class TasksViewset(
+    GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin
+):
     queryset = Tasks.objects.all()
     permission_classes = (IsAuthenticated, TasksPermissions)
 
