@@ -14,7 +14,7 @@ from v1.models.State import States
 from v1.models.Task import Tasks
 
 
-class StatesTestRetrieve(APITestCase):
+class TasksTestDelete(APITestCase):
     def setUp(self):
         # Create some users
         self.user1 = User.objects.create(username='Pepito')
