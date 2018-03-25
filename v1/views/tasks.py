@@ -39,3 +39,7 @@ class TasksViewset(
         return {
             'user': self.request.user
         }
+
+    def perform_destroy(self, instance):
+        instance.deleted = True
+        instance.save()
