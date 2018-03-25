@@ -11,7 +11,7 @@ class Tasks(models.Model):
     description = models.CharField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    date_expired = models.DateTimeField(null=True, default=None)
+    date_expired = models.DateTimeField(null=True, default=None, blank=True)
     deleted = models.BooleanField(default=False)
     state = models.ForeignKey(States, on_delete=models.CASCADE)
     board = models.ForeignKey(Boards, on_delete=models.CASCADE)

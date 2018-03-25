@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.utils import timezone
+from django.utils.datetime_safe import datetime
 from django.contrib.auth.models import User, Group
 
 from rest_framework import status
@@ -126,199 +126,111 @@ class StatesTestRetrieve(APITestCase):
             board=self.board3
         )
 
-        self.task1 = Tasks.objects.create(
-            title='task 1',
-            description='Some description',
-            date_expired=timezone.now() + timezone.timedelta(days=1),
-            state=self.state1,
-            board=self.state1.board
-        )
-        self.task2 = Tasks.objects.create(
-            title='task 2',
-            description='Some description',
-            date_expired=timezone.now() + timezone.timedelta(hours=5),
-            state=self.state1,
-            board=self.state1.board
-        )
-        self.task3 = Tasks.objects.create(
-            title='task 3',
-            description='Some description',
-            date_expired=timezone.now() - timezone.timedelta(minutes=5),
-            state=self.state1,
-            board=self.state1.board
-        )
+    def get_uri(self):
+        return '/api/v1/tasks/'
 
-        self.task4 = Tasks.objects.create(
-            title='task 4',
-            description='Some description',
-            date_expired=timezone.now(),
-            state=self.state2,
-            board=self.state2.board
-        )
-        self.task5 = Tasks.objects.create(
-            title='task 5',
-            description='Some description',
-            date_expired=timezone.now(),
-            state=self.state2,
-            board=self.state2.board
-        )
-        self.task6 = Tasks.objects.create(
-            title='task 6',
-            description='Some description',
-            date_expired=timezone.now(),
-            state=self.state2,
-            board=self.state2.board
-        )
-
-    def get_uri(self, pk):
-        return '/api/v1/states/{}/tasks/'.format(pk)
-
-    def send_request_with_authenticate(self, user, pk, params):
+    def send_request_with_authenticate(self, user, params):
         # Get uri
-        uri = self.get_uri(pk)
+        uri = self.get_uri()
 
         # Force login
         self.client.force_login(user=user)
 
         # Send request
-        response = self.client.get(uri, params)
+        response = self.client.post(uri, params)
 
         # Logout
         self.client.logout()
 
         return response
 
-    def send_request_without_authenticate(self, pk, params):
+    def send_request_without_authenticate(self, params):
         # Get uri
-        uri = self.get_uri(pk)
+        uri = self.get_uri()
 
         # Send request and return it
-        return self.client.get(uri, params)
+        return self.client.post(uri, params)
 
     def test_anonimous_user_no_states(self):
-        params = {}
-        response = self.send_request_without_authenticate(self.board1.pk, params)
+        params = {
+            'title': 'Tasks 1',
+            'description': 'Some description',
+
+        }
+        response = self.send_request_without_authenticate(params)
 
         # Check status code is == 401
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def launch_test_successfully(self, user, state, tasks_length, params):
+    def launch_test_successfully(self, user, params):
         # Send request
         response = self.send_request_with_authenticate(
             user,
-            state.pk,
             params
         )
 
         # Check response status code is equals to 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        payload = response.data.get('results')
-        # Check length is equals to length_param
-        self.assertEqual(len(payload), tasks_length)
+        payload = response.data
+        # Check serializers fields are on payload results
+        self.assertIn('id', payload)
+        self.assertIn('title', payload)
+        self.assertIn('description', payload)
+        self.assertIn('date_created', payload)
+        self.assertIn('date_modified', payload)
+        self.assertIn('date_expired', payload)
+        self.assertIn('deleted', payload)
+        self.assertIn('state', payload)
+        self.assertIn('board', payload)
 
-    def test_get_tasks_status_state_1_user1(self):
-        # Params
+    def test_create_tasks(self):
+        # params
         user = self.user1
-        state = self.state1
-        tasks = 3
-        params = {}
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_status_state_2_user1(self):
-        # Params
-        user = self.user1
-        state = self.state2
-        tasks = 3
-        params = {}
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_status_state_3_user2(self):
-        # Params
-        user = self.user2
-        state = self.state3
-        tasks = 0
-        params = {}
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_status_state_6_user2(self):
-        # Params
-        user = self.user2
-        state = self.state6
-        tasks = 0
-        params = {}
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_status_board_1_user2_forbidden(self):
-        # Params
-        user = self.user2
-        board = self.board1
         params = {
-            'title': self.task1.title
+            'title': 'Tasks 1',
+            'description': 'Some description',
+            'board': self.board1.pk,
+            'state': self.state1.pk
+        }
+
+        # launch tests
+        self.launch_test_successfully(user, params)
+
+    def test_create_tasks_state_not_in_board(self):
+        # params
+        user = self.user1
+        params = {
+            'title': 'Tasks 1',
+            'description': 'Some description',
+            'board': self.board2.pk,
+            'state': self.state1.pk
         }
 
         # Send request
-        response = self.send_request_with_authenticate(user, board.pk, params)
+        response = self.send_request_with_authenticate(
+            user,
+            params
+        )
 
-        # Check response status code is equals to 403
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # Check response status code is equals to 400
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_get_tasks_filtering_by_title(self):
-        # Params
-        user = self.user1
-        state = self.state1
-        tasks = 1
+    def test_create_tasks_no_board_access(self):
+        # params
+        user = self.user2
         params = {
-            'title': self.task1.title
+            'title': 'Tasks 1',
+            'description': 'Some description',
+            'board': self.board1.pk,
+            'state': self.state1.pk
         }
 
-        self.launch_test_successfully(user, state, tasks, params)
+        # Send request
+        response = self.send_request_with_authenticate(
+            user,
+            params
+        )
 
-    def test_get_tasks_filtering_by_date_create_range(self):
-        # Params
-        user = self.user1
-        state = self.state1
-        tasks = 3
-        params = {
-            'start_date': self.task1.date_created,
-            'end_date': self.task3.date_created
-        }
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_filtering_by_is_expired_true(self):
-        # Params
-        user = self.user1
-        state = self.state1
-        tasks = 1
-        params = {
-            'is_expired': True
-        }
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_filtering_by_is_expired_false(self):
-        # Params
-        user = self.user1
-        state = self.state1
-        tasks = 2
-        params = {
-            'is_expired': False
-        }
-
-        self.launch_test_successfully(user, state, tasks, params)
-
-    def test_get_tasks_filtering_by_title_contains(self):
-        # Params
-        user = self.user1
-        state = self.state1
-        tasks = 3
-        params = {
-            'title': 'task'
-        }
-
-        self.launch_test_successfully(user, state, tasks, params)
+        # Check response status code is equals to 400
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

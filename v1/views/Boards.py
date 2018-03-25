@@ -75,14 +75,13 @@ class BoardView(
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    @detail_route(['get'])
+    @detail_route(['get'], url_path='states')
     def get_states(self, request, pk=None):
         instance = self.get_object()
-        serializer = self.get_serializer_class()(instance)
+        serializer = self.get_serializer(instance)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_destroy(self, instance):
         instance.deleted = True
         instance.save()
-
