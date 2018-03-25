@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from v1.models.Task import Tasks
 from v1.models.Board import Boards
 from v1.serializers.tasks.serializer import TasksSerializer
+from v1.permissions.tasks.permissions import TasksPermissions
 
 
 class TasksViewset(ModelViewSet):
     queryset = Tasks.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, TasksPermissions)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -18,7 +19,10 @@ class TasksViewset(ModelViewSet):
 
         # To show tasks that are owner, has access by group or user
         return queryset.filter(
-            board__in=Boards.permissions.get_boards_access(user, ['read'])
+            board__in=Boards.permissions.get_boards_access(
+                user,
+                ['read']
+            )
         )
 
     def get_serializer_class(self):
