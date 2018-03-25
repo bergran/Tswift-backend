@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.decorators import detail_route
@@ -11,10 +10,12 @@ from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
 from v1.models.Board import Boards
+from v1.models.Permissions import READ
 from v1.permissions.boards.permission import BoardPermission
 from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.serializer_list import BoardListSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
+from v1.serializers.boards.add_users import BoardAddUserSerializer
 from v1.serializers.boards.get_states import GetStatesSerializer
 
 
@@ -40,17 +41,22 @@ class BoardView(
         ]:
             user = self.request.user
 
-            return queryset.filter(
-                Q(owner=user) |
-                Q(userboardpermissions__user=user, userboardpermissions__permission__name='read') |
-                Q(groupboardpermissions__group__in=user.groups.all(), groupboardpermissions__permission__name='read')
-            ).distinct()
+            return Boards.permissions.get_boards_access(
+                self.request.user,
+                [READ]
+            )
         return queryset
 
     def get_serializer_context(self):
         return {
             'user': self.request.user
         }
+
+    def get_serializer_users_groups(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        kwargs.get('context').update({'board': self.get_object()})
+        return serializer_class(*args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == 'change_name':
@@ -59,6 +65,8 @@ class BoardView(
             return BoardListSerializer
         elif self.action == 'get_states':
             return GetStatesSerializer
+        elif self.action == 'add_users':
+            return BoardAddUserSerializer
         else:
             return BoardSerializer
 
@@ -82,6 +90,25 @@ class BoardView(
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @detail_route(methods=['post'], url_path='add_users')
+    def add_users(self, request, *args, **kwargs):
+        """
+        Method that add user permissions to the board. If the user/s
+        had any permissions before it is gonna be override.
+        """
+        serializer = self.get_serializer_users_groups(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_add_users(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @detail_route(methods=['post'], url_path='add_groups')
+    def add_groups(self, request, pk, *args, **kwargs):
+        pass
+
     def perform_destroy(self, instance):
         instance.deleted = True
         instance.save()
+
+    def perform_add_users(self, serializer):
+        serializer.save()

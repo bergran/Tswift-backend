@@ -3,6 +3,8 @@
 from django.contrib.auth import models as django_models
 from django.db import models
 
+from v1.models.Permissions import READ
+
 
 class BoardManager(models.Manager):
     def get_boards_access(self, user, permissions):
@@ -14,7 +16,7 @@ class BoardManager(models.Manager):
                 groupboardpermissions__permission__name__in=permissions)
         ).distinct()
 
-    def has_boards_access(self, user, board_instance, permissions=['read']):
+    def has_boards_access(self, user, board_instance, permissions=[READ]):
         return self.get_boards_access(user, permissions).filter(
             pk=board_instance.pk
         ).exists()
