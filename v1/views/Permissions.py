@@ -2,31 +2,25 @@
 
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from v1.models.Permissions import READ, WRITE, DELETE
 
 
 class PermissionView(
     GenericViewSet,
     mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin
 ):
     permission_classes = [IsAuthenticated, ]
+    queryset = None
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            pass
-        elif self.action == 'list':
-            pass
-        elif self.action == 'destroy':
-            pass
         return None
 
-    def create(self, request, *args, **kwargs):
-        pass
-
     def list(self, request, *args, **kwargs):
-        pass
-
-    def destroy(self, request, *args, **kwargs):
-        pass
+        return Response({
+            'read': READ,
+            'write': WRITE,
+            'delete': DELETE
+        })
