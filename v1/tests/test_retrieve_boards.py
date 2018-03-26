@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from v1.models.Board import Boards
-from v1.models.Permissions import Permissions
+from v1.models.Permissions import Permissions, READ, WRITE, DELETE
 from v1.models.UserBoardPermissions import UserBoardPermissions
 from v1.models.GroupBoardPermissions import GroupBoardPermissions
 
@@ -31,9 +31,9 @@ class BoardTestRetrieve(APITestCase):
         self.group3.user_set.add(self.user3)
 
         # Create permissions
-        self.write = Permissions.objects.create(name='write')
-        self.read = Permissions.objects.create(name='read')
-        self.delete = Permissions.objects.create(name='delete')
+        self.write = Permissions.objects.create(name=WRITE)
+        self.read = Permissions.objects.create(name=READ)
+        self.delete = Permissions.objects.create(name=DELETE)
 
         # Create some Boards
         self.board1 = Boards.objects.create(name='board 1', owner=self.user1)
