@@ -3,6 +3,7 @@
 from rest_framework.permissions import BasePermission
 
 from v1.models.Board import Boards
+from v1.models.Permissions import READ, WRITE, DELETE
 
 
 class TasksPermissions(BasePermission):
@@ -10,15 +11,15 @@ class TasksPermissions(BasePermission):
         if view.action in [
             'retrieve',
         ]:
-            permissions_name = ['read']
+            permissions_name = [READ]
         elif view.action == 'destroy':
-            permissions_name = ['delete', 'read']
+            permissions_name = [READ, DELETE]
         elif view.action in [
             'create'
         ]:
-            permissions_name = ['read', 'write']
+            permissions_name = [READ, WRITE]
         else:
-            permissions_name = ['read', 'write', 'delete']
+            permissions_name = [READ, WRITE, DELETE]
 
         user = request.user
         return Boards.permissions.has_boards_access(

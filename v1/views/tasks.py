@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from v1.models.Task import Tasks
 from v1.models.Board import Boards
+from v1.models.Permissions import READ
 from v1.serializers.tasks.serializer import TasksSerializer
 from v1.permissions.tasks.permissions import TasksPermissions
 
@@ -28,7 +29,7 @@ class TasksViewset(
         return queryset.filter(
             board__in=Boards.permissions.get_boards_access(
                 user,
-                ['read']
+                [READ]
             )
         )
 

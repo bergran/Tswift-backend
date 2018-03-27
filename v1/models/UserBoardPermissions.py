@@ -7,6 +7,15 @@ from v1.models.Permissions import Permissions
 from v1.models.Board import Boards
 
 
+class UserBoardPermissionManager(models.Manager):
+    def remove_board_users_permissions(self, board, users, permissions):
+        self.filter(
+            board=board,
+            user__in=users,
+            permission__in=permissions
+        ).delete()
+
+
 class UserBoardPermissions(models.Model):
     user = models.ForeignKey(
         django_models.User,
@@ -21,6 +30,9 @@ class UserBoardPermissions(models.Model):
         on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(auto_now_add=True)
+
+    # Manager
+    objects = UserBoardPermissionManager()
 
     class Meta:
         db_table = 'UserBoardPermissions'

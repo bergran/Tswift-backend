@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.db.models import Q
-
 from rest_framework import mixins
 from rest_framework.decorators import detail_route
 from rest_framework.permissions import IsAuthenticated
@@ -9,8 +7,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.tasks_filter import TasksFilter
+from v1.models import Boards
 from v1.models.State import States
 from v1.models.Task import Tasks
+from v1.models.Permissions import READ
 from v1.serializers.tasks_states.serializer import StateSerializer
 from v1.serializers.tasks_states.get_tasks import GetTasksSerializer
 from v1.permissions.states.permissions import StatesPermission
@@ -52,9 +52,7 @@ class StatesView(
         user = self.request.user
 
         return queryset.filter(
-            Q(board__owner=user) |
-            Q(board__userboardpermissions__user=user, board__userboardpermissions__permission__name='read') |
-            Q(board__groupboardpermissions__group__in=user.groups.all(), board__groupboardpermissions__permission__name='read')
+            board__in=Boards.permissions.get_boards_access(user, [READ])
         ).distinct()
 
     def perform_destroy(self, instance):
