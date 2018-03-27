@@ -16,6 +16,7 @@ from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.serializer_list import BoardListSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
 from v1.serializers.boards.add_users import BoardAddUserSerializer
+from v1.serializers.boards.add_groups import BoardAddGroupSerializer
 from v1.serializers.boards.get_states import GetStatesSerializer
 
 
@@ -67,6 +68,8 @@ class BoardView(
             return GetStatesSerializer
         elif self.action == 'add_users':
             return BoardAddUserSerializer
+        elif self.action == 'add_groups':
+            return BoardAddGroupSerializer
         else:
             return BoardSerializer
 
@@ -104,11 +107,22 @@ class BoardView(
 
     @detail_route(methods=['post'], url_path='add_groups')
     def add_groups(self, request, pk, *args, **kwargs):
-        pass
+        """
+        Method that add groups permissions to the board. If the group/s
+        had any permissions before it is gonna be override.
+        """
+        serializer = self.get_serializer_users_groups(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_add_groups(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_destroy(self, instance):
         instance.deleted = True
         instance.save()
 
     def perform_add_users(self, serializer):
+        serializer.save()
+
+    def perform_add_groups(self, serializer):
         serializer.save()
