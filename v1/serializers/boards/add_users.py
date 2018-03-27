@@ -19,11 +19,6 @@ class BoardAddUserSerializer(serializers.ModelSerializer):
         ]
     )
 
-    def get_permissions(self, selected):
-        return Permissions.objects.filter(
-            name__in=selected
-        )
-
     def validate_users(self, users):
         if len(users) > 10:
             raise serializers.ValidationError(
@@ -47,7 +42,7 @@ class BoardAddUserSerializer(serializers.ModelSerializer):
 
     def validate_permissions(self, permissions):
         if len(permissions) > 0:
-            return self.get_permissions(permissions)
+            return Permissions.permissions.get_permissions(permissions)
         raise serializers.ValidationError('You should add any permission')
 
     def validate(self, attrs):
