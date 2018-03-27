@@ -8,6 +8,15 @@ WRITE = 'WT'
 DELETE = 'DE'
 
 
+class PermissionManager(models.Manager):
+    def get_permissions(self, permissions):
+        if set([READ, WRITE, DELETE]).issubset(permissions):
+            return self.none()
+        return self.filter(
+            name__in=permissions
+        )
+
+
 class Permissions(models.Model):
     names = (
         (READ, 'Read'),
@@ -28,6 +37,10 @@ class Permissions(models.Model):
     )
 
     name = models.CharField(max_length=20, choices=names)
+
+    # Managers
+    permissions = PermissionManager()
+    objects = models.Manager()
 
     class Meta:
         db_table = 'Permissions'
