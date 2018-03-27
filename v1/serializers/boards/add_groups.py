@@ -44,10 +44,10 @@ class BoardAddGroupSerializer(serializers.ModelSerializer):
         groups = validated_data.get('groups')
         permissions = validated_data.get('permissions')
         board = self.context.get('board')
-        GroupBoardPermissions.objects.filter(
-            group__in=groups,
-            board=board,
-            permission__in=permissions
+        GroupBoardPermissions.objects.remove_board_groups_permissions(
+            board,
+            groups,
+            permissions
         )
         GroupBoardPermissions.objects.bulk_create(
             [
@@ -64,6 +64,13 @@ class BoardAddGroupSerializer(serializers.ModelSerializer):
             'groups': groups,
             'permissions': self.get_initial().get('permissions')
         }
+
+    def remove_board_groups_permissions(self):
+        GroupBoardPermissions.objects.remove_board_groups_permissions(
+            self.context.get('board'),
+            self.validated_data.get('groups'),
+            self.validated_data.get('permissions')
+        )
 
     class Meta:
         model = GroupBoardPermissions
