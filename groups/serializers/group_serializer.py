@@ -7,12 +7,12 @@ from groups.models.group_profile import GroupProfile
 
 
 class GroupProfileSerializer(serializers.ModelSerializer):
-    owner = serializers.CharField(source='owner.username')
+    owner = serializers.CharField(source='owner.username', read_only=True)
 
     def create(self, validated_data):
         owner = self.context.get('user')
         try:
-            return GroupProfile.objects.create(
+            return GroupProfile.objects.create_group(
                 name=validated_data.get('name'),
                 owner=owner
             )
@@ -22,13 +22,12 @@ class GroupProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         name = validated_data.get('name', instance.name)
         owner = validated_data.get('owner', instance.owner)
-        if instance.name == name:
-            instance.name = name
-            instance.save()
-
-        if instance.owner == owner:
-            instance.owner = owner
-            instance.profile.save()
+        if instance.name != name:
+            try:
+                instance.name = name
+                instance.save()
+            except IntegrityError:
+                raise serializers.ValidationError('Name exists')
         return instance
 
     class Meta:

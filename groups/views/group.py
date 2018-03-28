@@ -6,12 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from groups.filters.groups import GroupFilter
 from groups.models.group_profile import Group
+from groups.permissions.owner_permissions import OwnerPermission
 from groups.serializers.group_serializer import GroupProfileSerializer
 
 
 class GroupsViewSet(ModelViewSet):
     queryset = Group.objects.all()
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated, OwnerPermission]
     filter_class = GroupFilter
 
     def get_queryset(self):
