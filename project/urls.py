@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/docs/', include_docs_urls(title='Api docs', public=False)),
     path('api/v1/', include('v1.urls')),
+    path('api/v1/', include('groups.urls')),
     path('api/v1/', include('rest_auth.urls')),
     path('api/v1/registration/', include('rest_auth.registration.urls')),
     path('api/token/verify', verify_jwt_token),
