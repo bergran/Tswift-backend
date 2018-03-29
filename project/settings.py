@@ -44,6 +44,7 @@ PROJECT_APPS = [
     'rest_framework',
     'django_filters',
     'v1.apps.V1Config',
+    'groups.apps.GroupsConfig',
     'rest_auth',
     'django.contrib.sites',
     'allauth',
