@@ -25,4 +25,10 @@ def owner(self):
     return self.profile.owner if self.profile else None
 
 
+@property
+def users(self):
+    return self.user_set
+
+
+Group.users = users
 Group.owner = owner

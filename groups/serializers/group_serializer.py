@@ -12,16 +12,17 @@ class GroupProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         owner = self.context.get('user')
         try:
-            return GroupProfile.objects.create_group(
+            group = GroupProfile.objects.create_group(
                 name=validated_data.get('name'),
                 owner=owner
             )
+            group.users.add(owner)
+            return group
         except IntegrityError:
             raise serializers.ValidationError('Duplicated name error')
 
     def update(self, instance, validated_data):
         name = validated_data.get('name', instance.name)
-        owner = validated_data.get('owner', instance.owner)
         if instance.name != name:
             try:
                 instance.name = name
