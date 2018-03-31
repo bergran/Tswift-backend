@@ -1,0 +1,25 @@
+version: '3'
+services:
+  django:
+    image: python:3.6
+    ports:
+      - 8000:8000
+    container_name: tswift_django
+    env_file: .env
+    working_dir: /code
+    volumes:
+        - .:/code
+    command: sh -c "pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn -w 4 -t 180 -b 0.0.0.0:8000 project.wsgi"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+  postgres:
+      image: postgres
+      container_name: tswift_postgres
+      env_file:
+        - .env
+      volumes:
+        - db_volume:/var/lib/postgresql/
+      restart: unless-stopped
+volumes:
+  db_volume:

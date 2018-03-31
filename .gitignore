@@ -1,0 +1,13 @@
+venv/
+
+project/settings_*
+!project/settings_prod.py
+
+db.sqlite3
+.idea
+
+*.pyc
+
+/__pycache__/
+.env
+static/
