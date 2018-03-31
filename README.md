@@ -15,17 +15,30 @@ You can access documentation on `/api/docs`
 ## Requirements
 
 * Python 3.6.2
-* Docker
+* Docker 17 or +
+* Docker-compose 3
 * Postgres
 * Ubuntu 17.10 (Development enviroment actually)
-
-## Install with docker
-
-Work in progress
+* Nginx
 
 ## Deploy with docker
 
-Work in progress
+1. Create a `.env` file with the next structure:
+    ```
+    DJANGO_SETTINGS_MODULE=project.settings_prod # Try dont change this
+    ALLOWED_HOSTS 0.0.0.0 # Try dont change this
+    APP_SECRET=Some_secret_goes_here:)
+    POSTGRES_DB=database_name
+    POSTGRES_HOST=postgres # Try dont change this
+    POSTGRES_PORT=database_port
+    POSTGRES_USER=database_user
+    POSTGRES_PASSWORD=database_pass
+    ```
+2. Execute `docker-compose up -d`
+3. Goes to your `<allowed_host>:8000` direction to check works properly
+4. execute `ln -s /path/to/app/nginx.conf /etc/nginx/sites-enabled/tswif`
+5. restart nginx server with `sudo systemctl restart nginx`
+6. enjoy your app :)
 
 ## Authors
 
