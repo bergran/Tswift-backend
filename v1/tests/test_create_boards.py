@@ -56,3 +56,48 @@ class BoardTestCreate(APITestCase):
 
         # Check payload name is equals to board_name
         self.assertEqual(payload.get('name', None), board_name)
+
+    def test_create_with_auth_duplicate(self):
+        # Params
+        board_name = 'Pepito board d'
+
+        # Send request
+        response = self.send_request_with_authenticate(
+            self.user,
+            {
+                'name': board_name
+            }
+        )
+
+        # Check response status code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        payload = response.data
+        # Check serializers fields are on payload
+        self.assertIn('id', payload.keys())
+        self.assertIn('name', payload.keys())
+        self.assertIn('date_created', payload.keys())
+        self.assertIn('date_modified', payload.keys())
+
+        # Check payload name is equals to board_name
+        self.assertEqual(payload.get('name', None), board_name)
+
+        response = self.send_request_with_authenticate(
+            self.user,
+            {
+                'name': board_name
+            }
+        )
+
+        # Check response status code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        payload = response.data
+        # Check serializers fields are on payload
+        self.assertIn('id', payload.keys())
+        self.assertIn('name', payload.keys())
+        self.assertIn('date_created', payload.keys())
+        self.assertIn('date_modified', payload.keys())
+
+        # Check payload name is equals to board_name
+        self.assertEqual(payload.get('name', None), board_name)

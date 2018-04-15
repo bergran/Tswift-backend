@@ -29,4 +29,4 @@ class BoardSerializer(serializers.ModelSerializer):
         return Boards.objects.get_or_create(
             name=validated_data.get('name'),
             owner=self.context.get('user')
-        )
+        )[0]
