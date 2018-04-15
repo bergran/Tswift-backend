@@ -26,7 +26,7 @@ class BoardSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        return Boards.objects.create(
+        return Boards.objects.get_or_create(
             name=validated_data.get('name'),
             owner=self.context.get('user')
         )
