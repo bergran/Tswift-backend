@@ -25,6 +25,7 @@ class TasksFilter(django_filters.FilterSet):
         lookup_expr='contains'
     )
 
+
     def get_is_expired(self, queryset, name, value):
         if value:
             return queryset.filter(
@@ -41,5 +42,6 @@ class TasksFilter(django_filters.FilterSet):
             'start_date',
             'end_date',
             'is_expired',
-            'title'
+            'title',
+            'deleted'
         )
