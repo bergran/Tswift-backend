@@ -17,4 +17,4 @@ class BoardFilters(django_filters.FilterSet):
 
     class Meta:
         model = Boards
-        fields = ('name', 'owner')
+        fields = ('name', 'owner', 'ordering', 'deleted')
