@@ -66,14 +66,7 @@ class StatesView(
         self.filter_class = TasksFilter
         queryset = Tasks.objects.filter(state=obj)
 
-        filter_queryset = self.filter_queryset(queryset)
-
-        page = self.paginate_queryset(filter_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(self.filter_queryset(queryset), many=True)
 
         self.filter_class = None
         return Response(serializer.data)
