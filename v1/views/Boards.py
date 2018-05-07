@@ -9,11 +9,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
-from v1.models import UserBoardPermissions
+from v1.models import UserBoardPermissions, GroupBoardPermissions
 from v1.models.Board import Boards
 from v1.models.Permissions import READ
 from v1.permissions.boards.permission import BoardPermission
-from v1.serializers.boards.get_boards import BoardPermissions
+from v1.serializers.boards.get_groups import BoardPermissionsGroups
+from v1.serializers.boards.get_users import BoardPermissions
 from v1.serializers.boards.serializer import BoardSerializer
 from v1.serializers.boards.serializer_list import BoardListSerializer
 from v1.serializers.boards.change_name import ChangeNameSerializer
@@ -72,6 +73,8 @@ class BoardView(
             return BoardAddUserSerializer
         elif self.action in ['get_user_boards']:
             return BoardPermissions
+        elif self.action in ['get_groups_board']:
+            return BoardPermissionsGroups
         elif self.action in ['add_groups', 'delete_groups']:
             return BoardAddGroupSerializer
         else:
@@ -155,7 +158,20 @@ class BoardView(
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(page, many=True)
+        serializer = self.get_serializer(users, many=True)
+        return Response(data=serializer.data)
+
+    @detail_route(methods=['get'], url_path='get_groups')
+    def get_groups_board(self, request, pk, *args, **kwargs):
+        obj = self.get_object()
+        groups = GroupBoardPermissions.objects.get_boards_groups(obj)
+
+        page = self.paginate_queryset(groups)
+        if page:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(groups, many=True)
         return Response(data=serializer.data)
 
     def perform_destroy(self, instance):
