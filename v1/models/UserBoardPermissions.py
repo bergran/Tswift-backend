@@ -9,11 +9,14 @@ from v1.models.Board import Boards
 
 class UserBoardPermissionManager(models.Manager):
     def remove_board_users_permissions(self, board, users, permissions):
-        self.filter(
+        return self.filter(
             board=board,
             user__in=users,
             permission__in=permissions
         ).delete()
+
+    def get_boards_users(self, board):
+        return self.filter(board=board)
 
 
 class UserBoardPermissions(models.Model):
@@ -37,3 +40,4 @@ class UserBoardPermissions(models.Model):
     class Meta:
         db_table = 'UserBoardPermissions'
         unique_together = (('user', 'board', 'permission'), )
+        ordering = ('pk', )
