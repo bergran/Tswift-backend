@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.contrib.auth import models as django_models
 from django.db import models
 
 from v1.models.Permissions import READ
@@ -21,10 +20,14 @@ class BoardManager(models.Manager):
             pk=board_instance.pk
         ).exists()
 
+    def get_users(self, board_instance):
+        pass
+        # return board_instanc
+
 
 class Boards(models.Model):
     name = models.CharField(max_length=20)
-    owner = models.ForeignKey(django_models.User, on_delete=models.CASCADE)
+    owner = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)

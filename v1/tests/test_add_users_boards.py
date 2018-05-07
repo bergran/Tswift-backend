@@ -114,6 +114,74 @@ class StatesTestRetrieve(APITestCase):
         # launch tests
         self.launch_test_successfully(user, board, params)
 
+    def test_add_users_successfully_add_more_permissions(self):
+        # params
+        user = self.user2
+        board = self.board2
+        params = {
+            'users': [self.user1.username],
+            'permissions': [self.write.name]
+
+        }
+
+        # launch tests
+        self.launch_test_successfully(user, board, params)
+
+        params = {
+            'users': [self.user1.username],
+            'permissions': [self.delete.name]
+
+        }
+
+        # launch tests
+        self.launch_test_successfully(user, board, params)
+
+        self.assertTrue(
+            Boards.permissions.has_boards_access(
+                self.user1,
+                self.board2,
+                [
+                    self.delete.name,
+                    self.write.name,
+                    self.read.name
+                ]
+            )
+        )
+
+    def test_add_users_successfully_add_more_permissions_and_more(self):
+        # params
+        user = self.user2
+        board = self.board2
+        params = {
+            'users': [self.user1.username],
+            'permissions': [self.write.name, self.delete.name]
+
+        }
+
+        # launch tests
+        self.launch_test_successfully(user, board, params)
+
+        params = {
+            'users': [self.user1.username],
+            'permissions': [self.delete.name]
+
+        }
+
+        # launch tests
+        self.launch_test_successfully(user, board, params)
+
+        self.assertTrue(
+            Boards.permissions.has_boards_access(
+                self.user1,
+                self.board2,
+                [
+                    self.delete.name,
+                    self.write.name,
+                    self.read.name
+                ]
+            )
+        )
+
     def test_add_users_can_not_add_self_user(self):
         # params
         user = self.user1

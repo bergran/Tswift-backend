@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from django.db import models
-from django.contrib.auth import models as django_models
 
 READ = 'RD'
 WRITE = 'WT'
@@ -24,13 +23,13 @@ class Permissions(models.Model):
         (DELETE, 'Delete')
     )
     users = models.ManyToManyField(
-        django_models.User,
+        'auth.User',
         through='UserBoardPermissions',
         through_fields=('permission', 'user'),
         related_name='users_custom'
     )
     groups = models.ManyToManyField(
-        django_models.Group,
+        'auth.Group',
         through='GroupBoardPermissions',
         through_fields=('permission', 'group'),
         related_name='groups_custom'
