@@ -11,6 +11,9 @@ class GroupBoardPermissionManager(models.Manager):
             permission__in=permissions
         ).delete()
 
+    def get_boards_groups(self, board):
+        return self.filter(board=board)
+
 
 class GroupBoardPermissions(models.Model):
     group = models.ForeignKey('auth.Group',
@@ -29,3 +32,4 @@ class GroupBoardPermissions(models.Model):
     class Meta:
         db_table = 'GroupBoardPermissions'
         unique_together = (('group', 'board', 'permission'), )
+        ordering = ('id', )
