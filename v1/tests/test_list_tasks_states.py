@@ -213,7 +213,7 @@ class StatesTestRetrieve(APITestCase):
         # Check response status code is equals to 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        payload = response.data.get('results')
+        payload = response.data
         # Check length is equals to length_param
         self.assertEqual(len(payload), tasks_length)
 

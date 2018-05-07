@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.contrib.auth import models as django_models
 from django.db import models
-
-from v1.models.Permissions import Permissions
-from v1.models.Board import Boards
 
 
 class GroupBoardPermissionManager(models.Manager):
@@ -17,12 +13,12 @@ class GroupBoardPermissionManager(models.Manager):
 
 
 class GroupBoardPermissions(models.Model):
-    group = models.ForeignKey(django_models.Group,
+    group = models.ForeignKey('auth.Group',
                               on_delete=models.CASCADE
                               )
-    board = models.ForeignKey(Boards,
+    board = models.ForeignKey('v1.Boards',
                               on_delete=models.CASCADE)
-    permission = models.ForeignKey(Permissions,
+    permission = models.ForeignKey('v1.Permissions',
                                    on_delete=models.CASCADE,
                                    )
     date_created = models.DateTimeField(auto_now_add=True)

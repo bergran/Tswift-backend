@@ -11,3 +11,6 @@ db.sqlite3
 /__pycache__/
 .env
 static/
+
+.pyc
+.venv

@@ -21,14 +21,17 @@ class TasksSerializer(serializers.ModelSerializer):
         board = attrs.get('board')
         state = attrs.get('state')
 
+        if self.instance and state and self.instance.board == state:
+                raise serializers.ValidationError('State is not in board')
+        elif self.instance:
+            return attrs
+
         if state and state.board != board:
             raise serializers.ValidationError('State is not in board')
         elif not state:
             return attrs
 
         return attrs
-
-
 
     class Meta:
         model = Tasks

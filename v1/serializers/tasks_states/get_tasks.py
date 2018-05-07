@@ -12,8 +12,11 @@ class GetTasksSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'title',
+            'description',
             'date_created',
             'date_modified',
             'date_expired',
             'deleted',
+            'board',
+            'state'
         )
