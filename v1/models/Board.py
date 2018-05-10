@@ -20,10 +20,6 @@ class BoardManager(models.Manager):
             pk=board_instance.pk
         ).exists()
 
-    def get_users(self, board_instance):
-        pass
-        # return board_instanc
-
 
 class Boards(models.Model):
     name = models.CharField(max_length=20)
