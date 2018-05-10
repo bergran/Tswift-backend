@@ -10,7 +10,7 @@ from v1.models.Board import Boards
 from v1.models.Permissions import Permissions, READ, WRITE, DELETE
 
 
-class AddGroupsTestBoard(APITestCase):
+class BoardTestSetUser(APITestCase):
     def setUp(self):
         # Create some users
         self.user1 = User.objects.create(username='Pepito')
@@ -41,13 +41,25 @@ class AddGroupsTestBoard(APITestCase):
         self.board4 = Boards.objects.create(name='board 4', owner=self.user3)
 
         UserBoardPermissions.objects.create(
-            user=self.user1,
+            user=self.user2,
+            permission=self.read,
+            board=self.board1
+        )
+
+        UserBoardPermissions.objects.create(
+            user=self.user2,
             permission=self.read,
             board=self.board2
         )
 
+        UserBoardPermissions.objects.create(
+            user=self.user2,
+            permission=self.delete,
+            board=self.board2
+        )
+
     def get_uri(self, pk):
-        return '/api/v1/boards/{}/add_groups/'.format(pk)
+        return '/api/v1/boards/{}/set-user-permissions/'.format(pk)
 
     def send_request_with_authenticate(self, user, pk, params):
         # Get uri
@@ -73,10 +85,18 @@ class AddGroupsTestBoard(APITestCase):
 
     def test_anonimous_user(self):
         params = {
-            'groups': [self.group1.pk, self.group2.pk],
-            'permissions': [self.write.name, self.read.name]
+            'users': [
+                {
+                    'name': self.user2.username,
+                    'permissions': [READ, WRITE]
+                },
+                {
+                    'name': self.user3.username,
+                    'permissions': [READ, DELETE]
+                }
+            ],
         }
-        response = self.send_request_without_authenticate(self.board1.pk, params)
+        response = self.send_request_without_authenticate(self.board1, params)
 
         # Check status code is == 401
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -90,115 +110,126 @@ class AddGroupsTestBoard(APITestCase):
         )
 
         # Check response status code is equals to 201
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         payload = response.data
         # Check serializers fields are on payload results
         self.check_serializer_fields(payload)
+        return payload
 
     def check_serializer_fields(self, payload):
-        self.assertIn('groups', payload)
-        self.assertIn('permissions', payload)
+        self.assertIn('users', payload)
 
-    def test_add_groups_successfully(self):
+    def test_set_users_successfully(self):
         # params
         user = self.user1
         board = self.board1
         params = {
-            'groups': [self.group1.pk, self.group2.pk],
-            'permissions': [self.write.name, self.read.name]
+            'users': [
+                {
+                    'name': self.user2.username,
+                    'permissions': [READ, WRITE]
+                },
+                {
+                    'name': self.user3.username,
+                    'permissions': [READ, DELETE]
+                }
+            ],
         }
 
         # launch tests
         self.launch_test_successfully(user, board, params)
+        elements = UserBoardPermissions.objects.filter(
+            user=self.user2,
+            board=board
+        )
+        self.assertEqual(elements.count(), 2)
 
-    def test_add_groups_can_not_add_duplicate_groups(self):
+        elements = UserBoardPermissions.objects.filter(
+            user=self.user3,
+            board=board
+        )
+        self.assertEqual(elements.count(), 2)
+
+    def test_set_users_successfully_remove_permissions_user2(self):
         # params
         user = self.user1
         board = self.board1
         params = {
-            'groups': [self.group1.pk, self.group2.pk, self.group2.pk],
-            'permissions': [self.write.name, self.read.name]
+            'users': [
+                {
+                    'name': self.user2.username,
+                    'permissions': []
+                }
+            ],
         }
 
-        # Send request
-        response = self.send_request_with_authenticate(
-            user,
-            board.pk,
-            params
+        # launch tests
+        self.launch_test_successfully(user, board, params)
+        elements = UserBoardPermissions.objects.filter(
+            user=self.user2,
+            board=board
         )
+        self.assertEqual(elements.count(), 0)
 
-        # Check response status code is equals to 400
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # Check can not add same user
-        self.assertIn('groups', response.data)
-
-    def test_add_groups_no_permissions(self):
+    def test_set_users_can_not_add_self_user(self):
         # params
         user = self.user1
         board = self.board1
         params = {
-            'users': [self.user2.username, self.user3.username],
-            'permissions': []
-
+            'users': [
+                {
+                    'name': self.user1.username,
+                    'permissions': []
+                }
+            ],
         }
 
-        # Send request
-        response = self.send_request_with_authenticate(
-            user,
-            board.pk,
-            params
-        )
+        # launch tests
+        response = self.send_request_with_authenticate(user, board.pk, params)
 
-        # Check response status code is equals to 400
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # Check can not add same user
-        self.assertIn('permissions', response.data)
-
-    def test_add_groups_only_owner_can_add_user(self):
+    def test_set_users_can_not_add_duplicate_users(self):
         # params
         user = self.user1
-        board = self.board2
+        board = self.board1
         params = {
-            'users': [],
-            'permissions': [self.write.name, self.read.name]
-
+            'users': [
+                {
+                    'name': self.user2.username,
+                    'permissions': []
+                },
+                {
+                    'name': self.user2.username,
+                    'permissions': []
+                }
+            ],
         }
 
-        # Send request
-        response = self.send_request_with_authenticate(
-            user,
-            board.pk,
-            params
-        )
+        # launch tests
+        response = self.send_request_with_authenticate(user, board.pk, params)
 
-        # Check response status code is equals to 400
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        # Check can not add same user
-        self.assertIn('groups', response.data)
-
-    def test_add_group_only_owner_can_add_user(self):
+    def test_set_users_only_owner_can_add_user(self):
         # params
-        user = self.user1
-        board = self.board2
+        user = self.user2
+        board = self.board1
         params = {
-            'users': None,
-            'permissions': [self.write.name, self.read.name]
-
+            'users': [
+                {
+                    'name': self.user2.username,
+                    'permissions': []
+                },
+                {
+                    'name': self.user3.username,
+                    'permissions': []
+                }
+            ],
         }
 
-        # Send request
-        response = self.send_request_with_authenticate(
-            user,
-            board.pk,
-            params
-        )
+        # launch tests
+        response = self.send_request_with_authenticate(user, board.pk, params)
 
-        # Check response status code is equals to 400
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # Check can not add same user
-        self.assertIn('groups', response.data)

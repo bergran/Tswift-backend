@@ -8,42 +8,46 @@ from v1.models.Permissions import READ, WRITE, DELETE, Permissions
 
 class BoardAddUserSerializer(serializers.ModelSerializer):
     users = serializers.ListField(
-        child=serializers.CharField(),
+        child=serializers.JSONField(),
         help_text='Users nickname that you want to invite to the board'
     )
-    permissions = serializers.MultipleChoiceField(
-        choices=[
-            READ,
-            WRITE,
-            DELETE
-        ]
-    )
+
+    def check_name(self, user):
+        if 'name' not in user:
+            raise serializers.ValidationError('Name doesnt exist on user element')
+        if type(user.get('name')) != str:
+            raise serializers.ValidationError('Name is not a string')
+        if self.context.get('user').username == user.get('name'):
+            raise serializers.ValidationError('User can not be same as owner')
+
+    def check_permissions(self, user):
+        if 'permissions' not in user:
+            raise serializers.ValidationError('Permissions doesnt exist on user element')
+
+        permissions = user.get('permissions')
+        if type(permissions) != list:
+            raise serializers.ValidationError('Permissions is not a list')
+        for permission in permissions:
+            self.check_permission(permission)
+
+    @staticmethod
+    def check_permission(permission):
+        if permission not in [READ, WRITE, DELETE]:
+            raise serializers.ValidationError('Permission is not in RD, WT, DE')
 
     def validate_users(self, users):
-        if len(users) > 10:
-            raise serializers.ValidationError(
-                'Max users per try, max 10'
-            )
-
-        users_instance = User.objects.filter(
-            username__in=users
-        )
-
-        if self.context.get('user') in users_instance:
-            raise serializers.ValidationError(
-                'Cannot add self to board'
-            )
-
-        if users_instance.count() != len(users):
-            raise serializers.ValidationError(
-                'Users duplicated'
-            )
-        return users_instance
-
-    def validate_permissions(self, permissions):
-        if len(permissions) > 0:
-            return Permissions.permissions.get_permissions(permissions)
-        raise serializers.ValidationError('You should add any permission')
+        users_name = []
+        for user in users:
+            self.check_name(user)
+            self.check_permissions(user)
+            if user.get('name', '') in users_name:
+                raise serializers.ValidationError('Cannot repeat users')
+            users_name.append(user.get('name'))
+        if User.objects.filter(
+                username__in=users_name
+        ).count() != len(users_name):
+            raise serializers.ValidationError('Any of user given does not exist')
+        return users
 
     def validate(self, attrs):
         if self.context.get('user') != self.context.get('board').owner:
@@ -53,24 +57,24 @@ class BoardAddUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         board_instance = self.context.get('board')
         users = validated_data.get('users')
-        permissions = validated_data.get('permissions')
-        UserBoardPermissions.objects.remove_board_users_permissions(
-            board_instance,
-            users,
-            permissions
-        )
-
-        UserBoardPermissions.objects.bulk_create(
-            [
-                UserBoardPermissions(
-                    user=user,
-                    board=board_instance,
-                    permission=permission
-                )
-                for user in validated_data.get('users')
-                for permission in validated_data.get('permissions')
-            ]
-        )
+        UserBoardPermissions.objects.set_user_permission_diff(users, board_instance)
+        # UserBoardPermissions.objects.remove_board_users_permissions(
+        #     board_instance,
+        #     users,
+        #     permissions
+        # )
+        #
+        # UserBoardPermissions.objects.bulk_create(
+        #     [
+        #         UserBoardPermissions(
+        #             user=user,
+        #             board=board_instance,
+        #             permission=permission
+        #         )
+        #         for user in validated_data.get('users')
+        #         for permission in validated_data.get('permissions')
+        #     ]
+        # )
         return self.get_initial()
 
     def remove_board_users_permissions(self,):
@@ -82,7 +86,7 @@ class BoardAddUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserBoardPermissions
-        fields = ('id', 'users', 'permissions')
+        fields = ('id', 'users')
         read_only_fields = (
             'id',
         )
