@@ -8,28 +8,45 @@ from v1.models.Permissions import READ, WRITE, DELETE, Permissions
 
 
 class BoardAddGroupSerializer(serializers.ModelSerializer):
-    permissions = serializers.MultipleChoiceField(
-        choices=[
-            READ,
-            WRITE,
-            DELETE
-    ])
-    groups = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Group.objects.all()
+    groups = serializers.ListField(
+        child=serializers.JSONField(),
+        help_text='Users nickname that you want to invite to the board'
     )
 
+    def check_name(self, group):
+        if 'name' not in group:
+            raise serializers.ValidationError('Name doesnt exist on group element')
+        if type(group.get('name')) != str:
+            raise serializers.ValidationError('Name is not a string')
+
+    def check_permissions(self, group):
+        if 'permissions' not in group:
+            raise serializers.ValidationError('Permissions doesnt exist on user element')
+
+        permissions = group.get('permissions')
+        if type(permissions) != list:
+            raise serializers.ValidationError('Permissions is not a list')
+        for permission in permissions:
+            self.check_permission(permission)
+
+    @staticmethod
+    def check_permission(permission):
+        if permission not in [READ, WRITE, DELETE]:
+            raise serializers.ValidationError('Permission is not in RD, WT, DE')
+
     def validate_groups(self, groups):
-        if len(set(groups)) == len(groups) and len(groups) > 0:
-            return groups
-
-        raise serializers.ValidationError('Groups are empty')
-
-    def validate_permissions(self, permissions):
-        permissions_instances = Permissions.permissions.get_permissions(permissions)
-        if permissions_instances:
-            return permissions_instances
-        raise serializers.ValidationError('Permissions are empty')
+        groups_name = []
+        for group in groups:
+            self.check_name(group)
+            self.check_permissions(group)
+            if group.get('name', '') in groups_name:
+                raise serializers.ValidationError('Cannot repeat users')
+            groups_name.append(group.get('name'))
+        if Group.objects.filter(
+                name__in=groups_name
+        ).count() != len(groups_name):
+            raise serializers.ValidationError('Any of groups given does not exist')
+        return groups
 
     def validate(self, attrs):
         user = self.context.get('user')
@@ -42,28 +59,29 @@ class BoardAddGroupSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         groups = validated_data.get('groups')
-        permissions = validated_data.get('permissions')
         board = self.context.get('board')
-        GroupBoardPermissions.objects.remove_board_groups_permissions(
-            board,
+        GroupBoardPermissions.objects.set_groups_permission_diff(
             groups,
-            permissions
+            board
         )
-        GroupBoardPermissions.objects.bulk_create(
-            [
-                GroupBoardPermissions(
-                    group=group,
-                    permission=permission,
-                    board=board
-                )
-                for group in groups
-                for permission in permissions
-            ]
-        )
-        return {
-            'groups': groups,
-            'permissions': self.get_initial().get('permissions')
-        }
+        #
+        # GroupBoardPermissions.objects.bulk_create(
+        #     [
+        #         GroupBoardPermissions(
+        #             group=group,
+        #             permission=permission,
+        #             board=board
+        #         )
+        #         for group in groups
+        #         for permission in permissions
+        #     ]
+        # )
+        # return {
+        #     'groups': groups,
+        #     'permissions': self.get_initial().get('permissions')
+        # }
+        return self.get_initial()
+
 
     def remove_board_groups_permissions(self):
         GroupBoardPermissions.objects.remove_board_groups_permissions(
@@ -74,4 +92,4 @@ class BoardAddGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupBoardPermissions
-        fields = ('groups', 'permissions')
+        fields = ('groups', )

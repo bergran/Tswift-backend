@@ -71,6 +71,10 @@ class BoardView(
             return GetStatesSerializer
         elif self.action in ['add_users', 'delete_users']:
             return BoardAddUserSerializer
+        elif self.action == 'set_user_permissions':
+            return BoardAddUserSerializer
+        elif self.action == 'set_group_permissions':
+            return BoardAddGroupSerializer
         elif self.action in ['get_user_boards']:
             return BoardPermissions
         elif self.action in ['get_groups_board']:
@@ -100,53 +104,21 @@ class BoardView(
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @detail_route(methods=['post'], url_path='add_users')
-    def add_users(self, request, *args, **kwargs):
-        """
-        Method that add user permissions to the board. If the user/s
-        had any permissions before it is gonna be override.
-        """
+    @detail_route(methods=['post'], url_path='set-user-permissions')
+    def set_user_permissions(self, request, *args, **kwargs):
         serializer = self.get_serializer_users_groups(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_add_users(serializer)
+        self.perform_set_users_permissions(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
-    @detail_route(methods=['post'], url_path='add_groups')
-    def add_groups(self, request, pk, *args, **kwargs):
-        """
-        Method that add groups permissions to the board. If the group/s
-        had any permissions before it is gonna be override.
-        """
+    @detail_route(methods=['post'], url_path='set-group-permissions')
+    def set_group_permissions(self, request, *args, **kwargs):
         serializer = self.get_serializer_users_groups(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_add_groups(serializer)
+        self.perform_set_groups_permissions(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    @detail_route(methods=['post'], url_path='delete_groups')
-    def delete_groups(self, request, pk, *args, **kwargs):
-        """
-        Method that add groups permissions to the board. If the group/s
-        had any permissions before it is gonna be override.
-        """
-        serializer = self.get_serializer_users_groups(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.remove_board_groups_permissions()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @detail_route(methods=['post'], url_path='delete_users')
-    def delete_users(self, request, pk, *args, **kwargs):
-        """
-        Method that add groups permissions to the board. If the group/s
-        had any permissions before it is gonna be override.
-        """
-        serializer = self.get_serializer_users_groups(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.remove_board_users_permissions()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
     @detail_route(methods=['get'], url_path='get_users')
     def get_user_boards(self, request, pk, *args, **kwargs):
@@ -174,12 +146,19 @@ class BoardView(
         serializer = self.get_serializer(groups, many=True)
         return Response(data=serializer.data)
 
-    def perform_destroy(self, instance):
+    @staticmethod
+    def perform_destroy(instance):
         instance.deleted = True
         instance.save()
 
-    def perform_add_users(self, serializer):
+    @staticmethod
+    def perform_set_users_permissions(serializer):
+        serializer.save()\
+
+    @staticmethod
+    def perform_set_groups_permissions(serializer):
         serializer.save()
 
-    def perform_add_groups(self, serializer):
+    @staticmethod
+    def perform_add_groups(serializer):
         serializer.save()
