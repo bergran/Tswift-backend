@@ -81,9 +81,9 @@ class BoardTestListPermissions(APITestCase):
             board=self.board3
         )
 
-    def send_request_with_authenticate(self, user, pk):
+    def send_request_with_authenticate(self, user, pk, params={}):
         self.client.force_login(user=user)
-        response =  self.client.get('/api/v1/boards/{}/get_groups/'.format(pk))
+        response =  self.client.get('/api/v1/boards/{}/get_groups/'.format(pk), params)
         self.client.logout()
         return response
 
@@ -122,3 +122,27 @@ class BoardTestListPermissions(APITestCase):
 
         # Check response status code == 200
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_board2_filtering_by_user(self):
+        # Create response
+        response = self.send_request_with_authenticate(self.user2, self.board2.pk, {
+            'group': self.group2.name
+        })
+
+        # Check response status code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check response has 1 boards
+        self.assertEqual(response.data.get('count'), 1)
+
+    def test_get_board2_filtering_by_permission(self):
+        # Create response
+        response = self.send_request_with_authenticate(self.user2, self.board2.pk, {
+            'permission': self.read.name
+        })
+
+        # Check response status code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check response has 1 boards
+        self.assertEqual(response.data.get('count'), 1)
