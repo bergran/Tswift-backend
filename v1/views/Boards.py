@@ -138,7 +138,7 @@ class BoardView(
 
         queryset = self.filter_queryset(users)
         page = self.paginate_queryset(queryset)
-        if page:
+        if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
@@ -152,7 +152,7 @@ class BoardView(
 
         queryset = self.filter_queryset(groups)
         page = self.paginate_queryset(queryset)
-        if page:
+        if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
