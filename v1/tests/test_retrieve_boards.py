@@ -127,6 +127,7 @@ class BoardTestRetrieve(APITestCase):
         self.assertIn('date_created', payload.keys())
         self.assertIn('date_modified', payload.keys())
         self.assertIn('deleted', payload.keys())
+        self.assertIn('owner', payload.keys())
         self.assertIn('states', payload.keys())
 
     def test_retrieve_user2_board2(self):
@@ -143,6 +144,7 @@ class BoardTestRetrieve(APITestCase):
         self.assertIn('date_created', payload.keys())
         self.assertIn('date_modified', payload.keys())
         self.assertIn('deleted', payload.keys())
+        self.assertIn('owner', payload.keys())
         self.assertIn('states', payload.keys())
 
     def test_retrieve_user3_board3(self):
@@ -159,6 +161,7 @@ class BoardTestRetrieve(APITestCase):
         self.assertIn('date_created', payload.keys())
         self.assertIn('date_modified', payload.keys())
         self.assertIn('deleted', payload.keys())
+        self.assertIn('owner', payload.keys())
         self.assertIn('states', payload.keys())
 
     def test_retrieve_user1_board2(self):
@@ -175,6 +178,7 @@ class BoardTestRetrieve(APITestCase):
         self.assertIn('date_created', payload.keys())
         self.assertIn('date_modified', payload.keys())
         self.assertIn('deleted', payload.keys())
+        self.assertIn('owner', payload.keys())
         self.assertIn('states', payload.keys())
 
     def test_retrieve_user2_board1(self):
