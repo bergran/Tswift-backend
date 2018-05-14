@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.decorators import detail_route
@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from v1.filters.board_filter import BoardFilters
+from v1.filters.group_permissions import GroupFilters
+from v1.filters.user_permissions import UserFilters
 from v1.models import UserBoardPermissions, GroupBoardPermissions
 from v1.models.Board import Boards
 from v1.models.Permissions import READ
@@ -41,7 +43,7 @@ class BoardView(
             'destroy',
             'retrieve',
             'change_name',
-            'get_states'
+            'get_states',
         ]:
             user = self.request.user
 
@@ -61,6 +63,19 @@ class BoardView(
         kwargs['context'] = self.get_serializer_context()
         kwargs.get('context').update({'board': self.get_object()})
         return serializer_class(*args, **kwargs)
+
+    def filter_queryset(self, queryset):
+        if self.action == 'get_user_boards':
+            self.filter_class = UserFilters
+        elif self.action == 'get_groups_board':
+            self.filter_class = GroupFilters
+        else:
+            self.filter_class = BoardFilters
+
+        return super().filter_queryset(queryset)
+
+    def get_board_object(self, pk):
+        return get_object_or_404(self.get_queryset(), pk=pk)
 
     def get_serializer_class(self):
         if self.action == 'change_name':
@@ -118,28 +133,30 @@ class BoardView(
 
     @detail_route(methods=['get'], url_path='get_users')
     def get_user_boards(self, request, pk, *args, **kwargs):
-        obj = self.get_object()
+        obj = self.get_board_object(pk)
         users = UserBoardPermissions.objects.get_boards_users(obj)
 
-        page = self.paginate_queryset(users)
-        if page:
+        queryset = self.filter_queryset(users)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(users, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data)
 
     @detail_route(methods=['get'], url_path='get_groups')
     def get_groups_board(self, request, pk, *args, **kwargs):
-        obj = self.get_object()
+        obj = self.get_board_object(pk)
         groups = GroupBoardPermissions.objects.get_boards_groups(obj)
 
-        page = self.paginate_queryset(groups)
-        if page:
+        queryset = self.filter_queryset(groups)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(groups, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(data=serializer.data)
 
     @staticmethod
@@ -149,7 +166,7 @@ class BoardView(
 
     @staticmethod
     def perform_set_users_permissions(serializer):
-        serializer.save()\
+        serializer.save()
 
     @staticmethod
     def perform_set_groups_permissions(serializer):

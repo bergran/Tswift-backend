@@ -58,23 +58,6 @@ class BoardAddUserSerializer(serializers.ModelSerializer):
         board_instance = self.context.get('board')
         users = validated_data.get('users')
         UserBoardPermissions.objects.set_user_permission_diff(users, board_instance)
-        # UserBoardPermissions.objects.remove_board_users_permissions(
-        #     board_instance,
-        #     users,
-        #     permissions
-        # )
-        #
-        # UserBoardPermissions.objects.bulk_create(
-        #     [
-        #         UserBoardPermissions(
-        #             user=user,
-        #             board=board_instance,
-        #             permission=permission
-        #         )
-        #         for user in validated_data.get('users')
-        #         for permission in validated_data.get('permissions')
-        #     ]
-        # )
         return self.get_initial()
 
     def remove_board_users_permissions(self,):
