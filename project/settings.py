@@ -44,6 +44,7 @@ DJANGO_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
     'rest_auth.registration',
     'corsheaders'
 ]
@@ -185,3 +186,7 @@ OLD_PASSWORD_FIELD_ENABLED = True
 REST_USE_JWT = True
 
 SITE_ID = 1
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'groups.serializers.user_serializer.UserSerializer'
+}

@@ -6,6 +6,8 @@ from v1.models.Board import Boards
 
 
 class BoardSerializer(serializers.ModelSerializer):
+    owner = serializers.CharField(source='owner.username', read_only=True)
+
     class Meta:
         model = Boards
         fields = (
@@ -14,6 +16,7 @@ class BoardSerializer(serializers.ModelSerializer):
             'deleted',
             'date_created',
             'date_modified',
+            'owner',
             'states'
         )
 
