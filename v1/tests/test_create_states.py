@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from django.utils.dateparse import parse_datetime
 from django.contrib.auth.models import User, Group
 
 from rest_framework import status
@@ -10,6 +9,7 @@ from v1.models.Board import Boards
 from v1.models.Permissions import Permissions
 from v1.models.UserBoardPermissions import UserBoardPermissions
 from v1.models.GroupBoardPermissions import GroupBoardPermissions
+from v1.models.Permissions import READ, WRITE, DELETE
 
 
 class StatesTestCreate(APITestCase):
@@ -32,9 +32,9 @@ class StatesTestCreate(APITestCase):
         self.group3.user_set.add(self.user3)
 
         # Create permissions
-        self.write = Permissions.objects.create(name='write')
-        self.read = Permissions.objects.create(name='read')
-        self.delete = Permissions.objects.create(name='delete')
+        self.write = Permissions.objects.create(name=WRITE)
+        self.read = Permissions.objects.create(name=READ)
+        self.delete = Permissions.objects.create(name=DELETE)
 
         # Create some Boards
         self.board1 = Boards.objects.create(name='board 1', owner=self.user1)
