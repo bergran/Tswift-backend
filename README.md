@@ -39,12 +39,18 @@ You can access documentation on `/api/docs`
     EMAIL_PORT=email port
     EMAIL_HOST_USER=username host email
     EMAIL_HOST_PASSWORD=password host email
+    ADDR_CLIENT=header that proxy will send client ip, default: `REMOTE_ADDR`
     ```
 2. Execute `docker-compose up -d`
 3. Goes to your `<allowed_host>:8000` direction to check works properly
 4. execute `ln -s /path/to/app/nginx.conf /etc/nginx/sites-enabled/tswif`
 5. restart nginx server with `sudo systemctl restart nginx`
 6. enjoy your app :)
+
+**Important** If you are under proxy like nginx or apache you should configure
+`ADDR_CLIENT` with the header where the client ip serves. Look at
+[here](https://docs.djangoproject.com/en/2.0/ref/request-response/#django.http.HttpRequest.META) to more info
+
 
 Note: Delete `# Try dont change this` because it will fail at import
 environment variable
@@ -61,6 +67,7 @@ Docker compose contains 3 services to up tswift-backend:
 Authentication backend it's gonna be with json web tokens over the URI
 `/api/v1/login/`. If the user fails 3 times the backend will be block
 his ip and user-agent 1 minute.
+
 
 ## Authors
 
