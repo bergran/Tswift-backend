@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from v1.models.State import States
 from v1.models.Board import Boards
+from v1.models.Permissions import READ, WRITE
 
 
 class StateSerializer(serializers.ModelSerializer):
@@ -13,20 +14,14 @@ class StateSerializer(serializers.ModelSerializer):
 
     def validate_board(self, board):
         user = self.context.get('user')
-        permissions_name = ['read', 'write']
-        if board.owner == user:
-            return board
-        elif board.groupboardpermissions_set.filter(
-            group__in=user.groups.all(),
-            permission__name__in=permissions_name
-        ).count() == len(permissions_name):
-            return board
-        elif board.userboardpermissions_set.filter(
-            user=user,
-            permission__name__in=permissions_name
-        ).count() == len(permissions_name):
-            return board
-        raise serializers.ValidationError('Invalid board')
+        permissions_name = [READ, WRITE]
+        if not Boards.permissions.has_boards_access(
+                user,
+                board,
+                permissions_name
+        ):
+            raise serializers.ValidationError('Invalid board')
+        return board
 
     class Meta:
         model = States
