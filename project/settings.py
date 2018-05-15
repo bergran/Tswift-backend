@@ -37,7 +37,10 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles'
+]
+
+PROJECT_APPS = [
     'rest_framework',
     'django_filters',
     'rest_auth',
@@ -46,13 +49,19 @@ DJANGO_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'rest_auth.registration',
-    'corsheaders'
-]
-
-PROJECT_APPS = [
+    'corsheaders',
+    'axes',
     'v1.apps.V1Config',
     'groups.apps.GroupsConfig',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_CACHE = 'default'
+AXES_COOLOFF_TIME = datetime.timedelta(minutes=1)
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
 
@@ -102,6 +111,17 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.environ.get('REDIS_CACHE_LOCATION', "redis://127.0.0.1:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "redis"
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -148,8 +168,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
@@ -186,6 +204,10 @@ OLD_PASSWORD_FIELD_ENABLED = True
 REST_USE_JWT = True
 
 SITE_ID = 1
+
+REST_AUTH_SERIALIZERS = {
+    'LOGIN_SERIALIZER': 'project.rest_auth_serializers.login_serializer.LoginSerializerCustom'
+}
 
 REST_AUTH_REGISTER_SERIALIZERS = {
     'REGISTER_SERIALIZER': 'groups.serializers.user_serializer.UserSerializer'
