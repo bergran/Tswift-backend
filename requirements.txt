@@ -14,7 +14,7 @@ django-filters==0.2.1
 django-ipware==2.1.0
 django-redis==4.9.0
 django-rest-auth==0.9.3
-djangorestframework==3.7.7
+djangorestframework==3.11.2
 djangorestframework-jwt==1.11.0
 gunicorn==19.7.1
 idna==2.6
